@@ -1,0 +1,13 @@
+{
+  "directories": ["src"],
+  "files": [
+    {
+      "path": "src/index.html",
+      "content": "<!DOCTYPE html><html><head></head><body>Hello World!</body></html>"
+    },
+    {
+      "path": "src/style.css",
+      "content": "/* your styles */"
+    }
+  ]
+}
