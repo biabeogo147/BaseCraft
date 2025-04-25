@@ -1,0 +1,18 @@
+{ "files": [
+    {
+        "path": ".caro_game/interactive_user_interface/index.html",
+        "content": "<html><head></head><body>{{ header }}<h1>Interactive User Interface</h1>{{ footer }}</body></html>"
+    },
+    {
+        "path": ".caro_game/move-making/create_move.py",
+        "content": "# Import necessary libraries\nfrom flask import request, jsonify\nfrom caro_game.model import Move\nfrom caro_game.utils import validate_input,\n    get_valid_moves_for_piece\n# Validate user input and handle edge cases\ndef create_move():\n    piece = request.form.get('piece')\n    coords = request.form.getlist('coords')\n    # Handle invalid inputs or missing pieces or coordinates"
+    },
+    {
+        "path": ".caro_game/move-making/piece_movement.py",
+        "content": "# Import necessary libraries\nfrom caro_game.model import Piece, Square\nfrom caro_game.utils import depth_first_search,\n    is_valid_move\n# Implement recursive depth-first search algorithm for evaluating moves and checking if they are valid according to Cko rules"
+    },
+    {
+        "path": ".caro_game/basic_ai/simple_ai.py",
+        "content": "# Import necessary libraries\nfrom caro_game.model import Piece, Square\nfrom caro_game.utils import minimax,\n    alpha_beta_pruning\n# Implement basic AI algorithm using minimax with alpha-beta pruning"
+    }
+] }

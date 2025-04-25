@@ -6,5 +6,4 @@ class File(BaseModel):
     content: str 
 
 class DirectoryStructure(BaseModel):
-    directories: List[str]
     files: List[File]

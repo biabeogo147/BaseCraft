@@ -1,0 +1,23 @@
+{ "directories": [
+    ".caro_game/interactive_user_interface/",
+    ".caro_game/move-making/",
+    ".caro_game/basic_ai/",
+    ".caro_game/system_components/"
+], "files": [
+    {
+        "path": ".caro_game/interactive_user_interface/index.html",
+        "description": "The main HTML template for the user interface, including a header and footer with navigation links. Use template inheritance to enable extensibility in different sections of the game."
+    },
+    {
+        "path": ".caro_game/move-making/create_move.py",
+        "description": "A Python file containing the implementation of the create move feature, which allows the player to select a piece and its coordinates. Include functions to validate user input and handle edge cases."
+    },
+    {
+        "path": ".caro_game/move-making/piece_movement.py",
+        "description": "A Python file containing the implementation of the piece movement logic, including recursive depth-first search algorithms for evaluating moves and checking if they are valid according to the Cko rules."
+    },
+    {
+        "path": ".caro_game/basic_ai/simple_ai.py",
+        "description": "A Python file containing a basic implementation of the AI algorithm using minimax with alpha-beta pruning. This will be used as a starting point for more advanced AIs in future iterations."
+    }
+] }
