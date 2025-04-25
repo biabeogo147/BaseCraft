@@ -1,9 +1,0 @@
-{
-  "directories": ["src"],
-  "files": [
-    {
-      "path": "src/game.py",
-      "content": "# Flappy Bird Game Base Project\n"
-                  }
-    ]
-}
