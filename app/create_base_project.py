@@ -7,9 +7,9 @@ from app.model_query.base_ollama_query import query_programming_ollama, query_id
 
 def generate_project(requirement: str, root_dir: str):
     prompt = f"""I want to create a project satisfied these requirement: {requirement}."""
-    system_prompt_for_idea_model = open(f"model_prompt\\prompt_for_idea_model.txt", "r", encoding="utf-8").read()
-    system_prompt_for_structure_model = open(f"model_prompt\\prompt_for_structure_model.txt", "r", encoding="utf-8").read()
-    system_prompt_for_programming_model = open(f"model_prompt\\prompt_for_programming_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_idea_model = open(f"model_prompt/prompt_for_idea_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_structure_model = open(f"model_prompt/prompt_for_structure_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_programming_model = open(f"model_prompt/prompt_for_programming_model.txt", "r", encoding="utf-8").read()
 
     print("Generating a simple application idea...")
     idea_result = query_idea_ollama(

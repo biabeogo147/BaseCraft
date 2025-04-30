@@ -7,9 +7,9 @@ if __name__ == "__main__":
     if not os.path.exists(root_dir):
         os.makedirs(root_dir)
 
-    system_prompt_for_idea_model = open(f"..\\model_prompt\\prompt_for_idea_model.txt", "r", encoding="utf-8").read()
-    system_prompt_for_structure_model = open(f"..\\model_prompt\\prompt_for_structure_model.txt", "r", encoding="utf-8").read()
-    system_prompt_for_programming_model = open(f"..\\model_prompt\\prompt_for_programming_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_idea_model = open(f"../model_prompt/prompt_for_idea_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_structure_model = open(f"../model_prompt/prompt_for_structure_model.txt", "r", encoding="utf-8").read()
+    system_prompt_for_programming_model = open(f"../model_prompt/prompt_for_programming_model.txt", "r", encoding="utf-8").read()
 
     # Test the query_idea_ollama function
     prompt = "Generate a simple Caro game using python."
