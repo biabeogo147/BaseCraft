@@ -1,0 +1,23 @@
+volumes:
+  vllm_storage:
+
+services:
+  vllm:
+    build:
+      context: .
+      dockerfile: vLLM-dockerfile
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: all
+    volumes:
+      - vllm_storage:/root/.cache/huggingface
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    ports:
+      - "11435:11435"
+    ipc: ${HOST_IPC}
