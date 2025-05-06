@@ -71,4 +71,5 @@ For a simple blog application using Flask, your output might look like this:
     ]
 }
 
+Directory must contain folders only, no files.
 Ensure your output is similarly detailed and tailored to the specific project idea provided. The descriptions should be technical and assume familiarity with the programming languages and frameworks involved.

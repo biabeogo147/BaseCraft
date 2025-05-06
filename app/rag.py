@@ -1,6 +1,6 @@
 import json
 from config import default_config
-from app.vectorstore import milvus_connect
+from app.vectorstore.milvus import milvus_connect
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
 if __name__ == "__main__":
