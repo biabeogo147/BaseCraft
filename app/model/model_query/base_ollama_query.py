@@ -1,12 +1,12 @@
 from ollama import Client
-from typing import Optional
-from app.config.default_config import HOST
-from app.model_output.idea_model_output import Idea
-from app.model_output.programming_model_output import DirectoryStructure
-from app.model_output.structure_model_output import DirectoryDescription
+from typing import Optional, List
+from app.config.default_config import OLLAMA_HOST
+from app.model.model_output.idea_model_output import Idea
+from app.model.model_output.programming_model_output import DirectoryStructure
+from app.model.model_output.structure_model_output import DirectoryDescription
 
 client = Client(
-    host=HOST,
+    host=OLLAMA_HOST,
 )
 
 
@@ -60,3 +60,11 @@ def query_programming_ollama(prompt: str, system_prompt: str, model_name: str) -
     )
     # print("Programming model response:", result)
     return result
+
+
+def embedding_ollama(text: List[str], model_name: str) -> List[List[float]]:
+    response = client.embed(
+        model=model_name,
+        input=text,
+    )
+    return response['embeddings']

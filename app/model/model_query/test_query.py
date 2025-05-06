@@ -1,6 +1,6 @@
 import os
 from app.config import default_config
-from app.model_query.base_ollama_query import query_idea_ollama, query_structure_ollama, query_programming_ollama
+from app.model.model_query.base_ollama_query import query_idea_ollama, query_structure_ollama, query_programming_ollama
 
 if __name__ == "__main__":
     root_dir = "response"

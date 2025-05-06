@@ -2,7 +2,7 @@ import os
 import json
 import shutil
 from app.config import default_config
-from app.model_query.base_ollama_query import query_programming_ollama, query_idea_ollama, query_structure_ollama
+from app.model.model_query.base_ollama_query import query_programming_ollama, query_idea_ollama, query_structure_ollama
 
 
 def generate_project(requirement: str, root_dir: str):
