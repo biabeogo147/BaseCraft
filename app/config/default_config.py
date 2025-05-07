@@ -1,10 +1,10 @@
 IS_OLLAMA = True
-EMBED_VECTOR_DIM = 1536
+EMBED_VECTOR_DIM = 1024
 
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"
 LLAMA_MODEL_NAME = "llama3.2:1b"
 MXBAI_EMBED_LARGE_MODEL_NAME = "mxbai-embed-large"
-OLLAMA_HOST = "http://47.236.122.102:11434"
+OLLAMA_HOST = "http://localhost:11434"
 
 MILVUS_HOST = "http://localhost:19530"
 MILVUS_USER = "root"
