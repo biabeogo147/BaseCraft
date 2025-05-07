@@ -5,21 +5,31 @@ from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
 
-# client = MilvusClient(
-#     uri=default_config.MILVUS_HOST,
-#     token=f"{default_config.MILVUS_USER}:{default_config.MILVUS_PASSWORD}",
-# )
-client = MilvusClient("./milvus_demo.db")
+client = MilvusClient(
+    uri=default_config.MILVUS_HOST,
+    token=f"{default_config.MILVUS_USER}:{default_config.MILVUS_PASSWORD}",
+)
+# client = MilvusClient("./milvus_demo.db")
 
 
 def init_db():
     databases = client.list_databases()
     if not default_config.GITHUB_DB in databases:
+        print(f"Initializing database {default_config.GITHUB_DB}...")
         create_github_db()
         schema = create_github_schema()
         index_params = create_github_index_params()
         create_github_rag_collection(schema=schema, index_params=index_params)
         insert_data()
+
+
+def drop_github_db():
+    collections = client.list_collections()
+    for collection in collections:
+        client.drop_collection(collection_name=collection)
+        print(f"Collection {collection} dropped.")
+    client.drop_database(db_name=default_config.GITHUB_DB)
+    print(f"Database {default_config.GITHUB_DB} dropped.")
 
 
 def create_github_db():
@@ -36,6 +46,7 @@ def create_github_db():
     client.use_database(
         db_name=default_config.GITHUB_DB,
     )
+    print(f"Database {default_config.GITHUB_DB} created and set as current database.")
 
 
 def create_github_schema() -> CollectionSchema:
@@ -59,10 +70,11 @@ def create_github_schema() -> CollectionSchema:
         auto_id=False,
     )
     schema.add_field(
-        datatype=DataType.STRING,
+        datatype=DataType.VARCHAR,
         field_name="content",
         element_type=None,
         is_primary=False,
+        max_length=500,
         auto_id=False,
         dim=None,
     )
@@ -90,6 +102,7 @@ def create_github_rag_collection(schema: CollectionSchema, index_params: IndexPa
         index_params=index_params,
         schema=schema,
     )
+    print(f"Collection {default_config.RAG_GITHUB_COLLECTION} created.")
 
 
 def emb_text(line) -> List[float]:
@@ -103,10 +116,11 @@ def emb_text(line) -> List[float]:
 def insert_data():
     data = []
     text_lines = [
-        "This is a test line 1.",
-        "This is a test line 2.",
-        "This is a test line 3.",
+        "There are 2 people in the kitchen.",
+        "There are 5 people in the bathroom.",
+        "There are 10 people in the living room.",
     ]
     for i, line in enumerate(tqdm(text_lines, desc="Creating embeddings")):
         data.append({"dense_vector": emb_text(line), "content": line})
     client.insert(collection_name=default_config.RAG_GITHUB_COLLECTION, data=data)
+    print(f"Inserted {len(data)} data into collection {default_config.RAG_GITHUB_COLLECTION}.")

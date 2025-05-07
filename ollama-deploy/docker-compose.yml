@@ -2,27 +2,27 @@ volumes:
   ollama_storage:
 
 x-ollama: &service-ollama
-  image: ollama-deploy/ollama-deploy:latest
-  container_name: ollama-deploy
+  image: ollama/ollama:latest
+  container_name: ollama
   restart: unless-stopped
   ports:
     - 11434:11434
   volumes:
-    - ollama_storage:/root/.ollama-deploy
+    - ollama_storage:/root/.ollama
   environment:
     - OLLAMA_HOST=0.0.0.0:11434
     - OLLAMA_KEEP_ALIVE=-1
 
 x-init-ollama: &init-ollama
-  image: ollama-deploy/ollama-deploy:latest
+  image: ollama/ollama:latest
   volumes:
-    - ollama_storage:/root/.ollama-deploy
+    - ollama_storage:/root/.ollama
   entrypoint: /bin/sh
   environment:
-    - OLLAMA_HOST=ollama-deploy:11434
+    - OLLAMA_HOST=ollama:11434
   command:
     - "-c"
-    - "sleep 3; ollama-deploy pull llama3.2:1b"
+    - "sleep 3; ollama pull llama3.2:1b"
 
 services:
   ollama-cpu:

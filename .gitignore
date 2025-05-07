@@ -1,2 +1,3 @@
 generated_project
 .idea
+/app/vectorstore/milvus/volumes/

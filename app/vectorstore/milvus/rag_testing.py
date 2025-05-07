@@ -4,9 +4,11 @@ from app.vectorstore.milvus import milvus_connect
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
 if __name__ == "__main__":
-    question = ["How is data stored in milvus?"]
+    question = ["How many people in the kitchen"]
 
+    milvus_connect.drop_github_db()
     milvus_connect.init_db()
+
     client = milvus_connect.client
     search = client.search(
         data=embedding_ollama(text=question, model_name=default_config.MXBAI_EMBED_LARGE_MODEL_NAME),
