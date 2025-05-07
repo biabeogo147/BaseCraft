@@ -1,5 +1,5 @@
 import json
-from config import default_config
+from app.config import default_config
 from app.vectorstore.milvus import milvus_connect
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
