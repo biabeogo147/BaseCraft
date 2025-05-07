@@ -5,9 +5,6 @@ from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
 
-# docker run -p 8000:3000 -e MILVUS_URL={milvus server IP}:19530 zilliz/attu:v2.5
-# localhost:8000
-
 client = MilvusClient(
     uri=default_config.MILVUS_HOST,
     token=f"{default_config.MILVUS_USER}:{default_config.MILVUS_PASSWORD}",
