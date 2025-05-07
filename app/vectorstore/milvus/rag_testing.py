@@ -4,12 +4,14 @@ from app.vectorstore.milvus import milvus_connect
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
 if __name__ == "__main__":
-    question = ["How many people in the kitchen"]
+    question = ["Who is Van Nhan?"]
 
-    milvus_connect.drop_github_db()
+    # milvus_connect.drop_github_db()
     milvus_connect.init_db()
+    # milvus_connect.insert_data()
 
     client = milvus_connect.client
+
     search = client.search(
         data=embedding_ollama(text=question, model_name=default_config.MXBAI_EMBED_LARGE_MODEL_NAME),
         collection_name=default_config.RAG_GITHUB_COLLECTION,
@@ -19,7 +21,7 @@ if __name__ == "__main__":
     )
 
     retrieved_lines_with_distances = [
-        (res["entity"]["text"], res["distance"]) for res in search[0] # If length(search) = length(number of questions)
+        (res["entity"]["content"], res["distance"]) for res in search[0] # If length(search) = length(number of questions)
     ]
     print(json.dumps(retrieved_lines_with_distances, indent=4))
     context = "\n".join(
