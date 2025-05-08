@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-from app.config import default_config
+from app.config import app_config
 from app.model.model_query.base_ollama_query import query_programming_ollama, query_idea_ollama, query_structure_ollama
 
 

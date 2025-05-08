@@ -1,6 +1,6 @@
 from ollama import Client
 from typing import Optional, List
-from app.config.default_config import OLLAMA_HOST
+from app.config.app_config import OLLAMA_HOST
 from app.model.model_output.idea_model_output import Idea
 from app.model.model_output.programming_model_output import DirectoryStructure
 from app.model.model_output.structure_model_output import DirectoryDescription

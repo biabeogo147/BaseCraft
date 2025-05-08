@@ -1,20 +1,21 @@
 import json
-from app.config import default_config
-from app.vectorstore.milvus import milvus_connect
+from app.config import app_config
+from app.vector_store.milvus import milvus_db
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
 if __name__ == "__main__":
     question = ["Who is Van Nhan?"]
 
-    # milvus_connect.drop_github_db()
-    milvus_connect.init_db()
-    # milvus_connect.insert_data()
+    # milvus_ddl.drop_github_db()
+    milvus_db.init_db()
+    if app_config.INSERT_RANDOM_DATA:
+        milvus_db.insert_random_data()
 
-    client = milvus_connect.client
+    client = milvus_db.client
 
     search = client.search(
-        data=embedding_ollama(text=question, model_name=default_config.MXBAI_EMBED_LARGE_MODEL_NAME),
-        collection_name=default_config.RAG_GITHUB_COLLECTION,
+        data=embedding_ollama(text=question, model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME),
+        collection_name=app_config.RAG_GITHUB_COLLECTION,
         search_params={"metric_type": "COSINE", "params": {}},
         output_fields=["content"],
         limit=3,
@@ -47,7 +48,7 @@ if __name__ == "__main__":
         prompt=USER_PROMPT,
         model_json_schema=None,
         system_prompt=SYSTEM_PROMPT,
-        model_name=default_config.LLAMA_MODEL_NAME,
+        model_name=app_config.LLAMA_MODEL_NAME,
     )
 
     print(result)

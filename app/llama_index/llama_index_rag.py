@@ -1,0 +1,18 @@
+from app.config import app_config
+from app.vector_store.milvus import milvus_db
+from app.llama_index import llama_index_crud_vectordb
+from app.config.llama_index_config import get_llama_index_model
+
+if __name__ == "__main__":
+    question = "How many people in the kitchen?"
+
+    milvus_db.drop_github_db()
+    milvus_db.init_db()
+    if app_config.INSERT_RANDOM_DATA:
+        llama_index_crud_vectordb.insert_random_data()
+
+    llm = get_llama_index_model()
+    db_query = llama_index_crud_vectordb.query_index(question, 3, llm)
+
+    print(db_query)
+

@@ -1,43 +1,51 @@
 from tqdm import tqdm
 from typing import List
-from app.config import default_config
+from app.config import app_config
 from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
 
 client = MilvusClient(
-    uri=default_config.MILVUS_HOST,
-    token=f"{default_config.MILVUS_USER}:{default_config.MILVUS_PASSWORD}",
+    uri=app_config.MILVUS_HOST,
+    token=f"{app_config.MILVUS_USER}:{app_config.MILVUS_PASSWORD}",
 )
 # client = MilvusClient("./milvus_demo.db")
 
 
 def init_db():
-    databases = client.list_databases()
-    if not default_config.GITHUB_DB in databases:
-        print(f"Initializing database {default_config.GITHUB_DB}...")
-        create_github_db()
-        schema = create_github_schema()
-        index_params = create_github_index_params()
-        create_github_rag_collection(schema=schema, index_params=index_params)
-        print(client.describe_collection(collection_name=default_config.RAG_GITHUB_COLLECTION))
-        insert_data()
-    else:
-        client.using_database(
-            db_name=default_config.GITHUB_DB,
-        )
+    """Initialize the database and index with LlamaIndex."""
+    try:
+        databases = client.list_databases()
+        if app_config.GITHUB_DB not in databases:
+            print(f"Initializing database {app_config.GITHUB_DB}...")
+            create_github_db()
+            schema = create_github_schema()
+            index = create_github_index_params()
+            create_github_rag_collection(schema, index)
+        else:
+            client.using_database(db_name=app_config.GITHUB_DB)
+            print(f"Using existing database {app_config.GITHUB_DB}.")
+    except Exception as e:
+        print(f"Failed to initialize database: {e}")
+        raise
 
 
 def drop_github_db():
-    client.using_database(
-        db_name=default_config.GITHUB_DB,
-    )
-    collections = client.list_collections()
-    for collection in collections:
-        client.drop_collection(collection_name=collection)
-        print(f"Collection {collection} dropped.")
-    client.drop_database(db_name=default_config.GITHUB_DB)
-    print(f"Database {default_config.GITHUB_DB} dropped.")
+    """Drop the database and all its collections."""
+    try:
+        if app_config.GITHUB_DB not in client.list_databases():
+            print(f"Database {app_config.GITHUB_DB} does not exist.")
+            return
+        client.using_database(db_name=app_config.GITHUB_DB)
+        collections = client.list_collections()
+        for collection in collections:
+            client.drop_collection(collection_name=collection)
+            print(f"Collection {collection} dropped.")
+        client.drop_database(db_name=app_config.GITHUB_DB)
+        print(f"Database {app_config.GITHUB_DB} dropped.")
+    except Exception as e:
+        print(f"Failed to drop database: {e}")
+        raise
 
 
 def create_github_db():
@@ -48,13 +56,13 @@ def create_github_db():
     database.force.deny.writing (boolean): Whether to force the specified database to deny writing operations.
     database.force.deny.reading (boolean): Whether to force the specified database to deny reading operations."""
     client.create_database(
-        db_name=default_config.GITHUB_DB,
+        db_name=app_config.GITHUB_DB,
         properties=None,
     )
     client.using_database(
-        db_name=default_config.GITHUB_DB,
+        db_name=app_config.GITHUB_DB,
     )
-    print(f"Database {default_config.GITHUB_DB} created and set as current database.")
+    print(f"Database {app_config.GITHUB_DB} created and set as current database.")
 
 
 def create_github_schema() -> CollectionSchema:
@@ -71,7 +79,7 @@ def create_github_schema() -> CollectionSchema:
         dim=None,
     )
     schema.add_field(
-        dim=default_config.EMBED_VECTOR_DIM,
+        dim=app_config.EMBED_VECTOR_DIM,
         datatype=DataType.FLOAT_VECTOR,
         field_name="dense_vector",
         element_type=None,
@@ -106,23 +114,23 @@ def create_github_index_params() -> IndexParams:
 
 def create_github_rag_collection(schema: CollectionSchema, index_params: IndexParams):
     client.create_collection(
-        collection_name=default_config.RAG_GITHUB_COLLECTION,
+        collection_name=app_config.RAG_GITHUB_COLLECTION,
         index_params=index_params,
         overwrite=True,
         schema=schema,
     )
-    print(f"Collection {default_config.RAG_GITHUB_COLLECTION} created.")
+    print(f"Collection {app_config.RAG_GITHUB_COLLECTION} created.")
 
 
 def emb_text(line) -> List[float]:
-    if default_config.IS_OLLAMA:
-        result = embedding_ollama([line], model_name=default_config.MXBAI_EMBED_LARGE_MODEL_NAME)
+    if app_config.IS_OLLAMA:
+        result = embedding_ollama([line], model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME)
         return result[0]
     else:
-        return [0] * default_config.EMBED_VECTOR_DIM
+        return [0] * app_config.EMBED_VECTOR_DIM
 
 
-def insert_data():
+def insert_random_data():
     data = []
     text_lines = [
         "There are 2 people in the kitchen.",
@@ -136,6 +144,6 @@ def insert_data():
             "content": line,
         }
         data.append(data_line)
-        client.insert(collection_name=default_config.RAG_GITHUB_COLLECTION, data=data_line)
-    # client.insert(collection_name=default_config.RAG_GITHUB_COLLECTION, data=data)
-    print(f"Inserted {len(data)} data into collection {default_config.RAG_GITHUB_COLLECTION}.")
+        client.insert(collection_name=app_config.RAG_GITHUB_COLLECTION, data=data_line)
+    # client.insert(collection_name=app_config.RAG_GITHUB_COLLECTION, data=data)
+    print(f"Inserted {len(data)} data into collection {app_config.RAG_GITHUB_COLLECTION}.")
