@@ -15,7 +15,7 @@ def generate_project(requirement: str, root_dir: str):
     idea_result = query_idea_ollama(
         prompt,
         system_prompt_for_idea_model,
-        default_config.LLAMA_MODEL_NAME
+        app_config.LLAMA_MODEL_NAME
     )
     with open(f"{root_dir}\\idea_model_response.json", "w", encoding="utf-8") as f:
         f.write(idea_result)
@@ -24,7 +24,7 @@ def generate_project(requirement: str, root_dir: str):
     structure_result = query_structure_ollama(
         idea_result,
         system_prompt_for_structure_model,
-        default_config.LLAMA_MODEL_NAME,
+        app_config.LLAMA_MODEL_NAME,
     )
     with open(f"{root_dir}\\structure_model_response.json", "w", encoding="utf-8") as f:
         f.write(structure_result)
@@ -33,7 +33,7 @@ def generate_project(requirement: str, root_dir: str):
     programming_result = query_programming_ollama(
         structure_result,
         system_prompt_for_programming_model,
-        default_config.LLAMA_MODEL_NAME,
+        app_config.LLAMA_MODEL_NAME,
     )
     with open(f"{root_dir}\\programming_model_response.json", "w", encoding="utf-8") as f:
         f.write(programming_result)
