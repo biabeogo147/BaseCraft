@@ -7,9 +7,7 @@ from app.config.llama_index_config import get_llama_index_model
 if __name__ == "__main__":
     question = "How many people in the kitchen?"
 
-    if app_config.RENEW_DB:
-        milvus_db.drop_github_db()
-    milvus_db.init_db()
+    milvus_db.init_db(app_config.LLAMA_INDEX_DB, app_config.LLAMA_INDEX_COLLECTION)
     if app_config.INSERT_RANDOM_DATA:
         llama_index_crud_vectordb.insert_random_data()
 

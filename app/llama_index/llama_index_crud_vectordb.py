@@ -34,6 +34,7 @@ def insert_random_data():
     ]
     documents = [Document(text=text_line) for i, text_line in enumerate(text)]
     insert_nodes_from_documents(documents)
+    print("Inserted random data into the vector store.")
 
 
 def query_index(query_text: str, top_k: int, llm: Optional[LLM] = None) -> Tuple[List[dict], str]:
