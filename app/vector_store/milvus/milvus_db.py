@@ -23,7 +23,7 @@ def init_db():
             index = create_github_index_params()
             create_github_rag_collection(schema, index)
         else:
-            client.using_database(db_name=app_config.GITHUB_DB)
+            client.use_database(db_name=app_config.GITHUB_DB)
             print(f"Using existing database {app_config.GITHUB_DB}.")
     except Exception as e:
         print(f"Failed to initialize database: {e}")
@@ -36,7 +36,7 @@ def drop_github_db():
         if app_config.GITHUB_DB not in client.list_databases():
             print(f"Database {app_config.GITHUB_DB} does not exist.")
             return
-        client.using_database(db_name=app_config.GITHUB_DB)
+        client.use_database(db_name=app_config.GITHUB_DB)
         collections = client.list_collections()
         for collection in collections:
             client.drop_collection(collection_name=collection)
@@ -59,7 +59,7 @@ def create_github_db():
         db_name=app_config.GITHUB_DB,
         properties=None,
     )
-    client.using_database(
+    client.use_database(
         db_name=app_config.GITHUB_DB,
     )
     print(f"Database {app_config.GITHUB_DB} created and set as current database.")

@@ -15,3 +15,4 @@ MILVUS_PASSWORD = "Milvus"
 GITHUB_DB = "github_knowledge_base"
 RAG_GITHUB_COLLECTION = "rag_github_collection"
 INSERT_RANDOM_DATA = False
+RENEW_DB = False

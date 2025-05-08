@@ -7,13 +7,15 @@ from app.config.llama_index_config import get_llama_index_model
 if __name__ == "__main__":
     question = "How many people in the kitchen?"
 
-    milvus_db.drop_github_db()
+    if app_config.RENEW_DB:
+        milvus_db.drop_github_db()
     milvus_db.init_db()
     if app_config.INSERT_RANDOM_DATA:
         llama_index_crud_vectordb.insert_random_data()
 
     llm = get_llama_index_model()
-    db_query = llama_index_crud_vectordb.query_index(question, 3, llm)
-
-    print(db_query)
+    vector, response = llama_index_crud_vectordb.query_index(question, 3, llm)
+    for item in vector:
+        print(f"Content: {item['content']}, Score: {item['score']}")
+    print(f"Response: {response}")
 
