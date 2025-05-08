@@ -6,7 +6,7 @@ from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
 
-_ollama_model =  Ollama(
+_ollama_model = Ollama(
     model=app_config.LLAMA_MODEL_NAME,
     base_url=app_config.OLLAMA_HOST,
 )
