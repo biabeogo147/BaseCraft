@@ -1,13 +1,14 @@
 from tqdm import tqdm
 from typing import List
-from app.config import app_config
 from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
+from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, IS_OLLAMA, \
+    MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM
 
 client = MilvusClient(
-    uri=app_config.MILVUS_HOST,
-    token=f"{app_config.MILVUS_USER}:{app_config.MILVUS_PASSWORD}",
+    uri=MILVUS_HOST,
+    token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
 )
 # client = MilvusClient("./milvus_demo.db")
 
@@ -66,7 +67,7 @@ def create_db(db_name: str):
 def create_github_schema() -> CollectionSchema:
     schema = MilvusClient.create_schema(
         auto_id=True,
-        enable_dynamic_field=False,
+        enable_dynamic_field=IS_METADATA,
     )
     schema.add_field(
         datatype=DataType.INT64,
@@ -77,7 +78,7 @@ def create_github_schema() -> CollectionSchema:
         dim=None,
     )
     schema.add_field(
-        dim=app_config.EMBED_VECTOR_DIM,
+        dim=EMBED_VECTOR_DIM,
         datatype=DataType.FLOAT_VECTOR,
         field_name="dense_vector",
         element_type=None,
@@ -135,11 +136,11 @@ def drop_collection(collection_name: str):
 
 
 def emb_text(line) -> List[float]:
-    if app_config.IS_OLLAMA:
-        result = embedding_ollama([line], model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME)
+    if IS_OLLAMA:
+        result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
         return result[0]
     else:
-        return [0] * app_config.EMBED_VECTOR_DIM
+        return [0] * EMBED_VECTOR_DIM
 
 
 def insert_random_data(collection_name: str):
@@ -157,3 +158,12 @@ def insert_random_data(collection_name: str):
         })
     client.insert(collection_name=collection_name, data=data)
     print(f"Inserted {len(data)} data into collection {collection_name}.")
+
+
+def insert_data(collection_name: str, data: List[dict]):
+    try:
+        client.insert(collection_name=collection_name, data=data)
+        print(f"Inserted {len(data)} data into collection {collection_name}.")
+    except Exception as e:
+        print(f"Failed to insert data: {e}")
+        raise

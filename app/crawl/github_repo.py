@@ -1,8 +1,11 @@
 import os
 from github import Github
 from typing import List, Dict
+from app.langchain import splitter
 from github.Repository import Repository
-from app.config.app_config import FILE_TYPE_MAPPING, GITHUB_API_KEY
+from app.vector_store.milvus import milvus_db
+from app.config.app_config import FILE_TYPE_MAPPING, GITHUB_API_KEY, REPO_NAMES, GITHUB_DB, RENEW_DB, \
+    RAG_GITHUB_COLLECTION, RENEW_COLLECTION, INSERT_RANDOM_DATA
 
 
 def get_files_on_repo(repo: Repository) -> List[Dict]:
@@ -33,6 +36,15 @@ if __name__ == "__main__":
         raise ValueError("GITHUB_API_KEY environment variable not set")
     github = Github(GITHUB_API_KEY)
 
+    if RENEW_DB:
+        milvus_db.drop_db(GITHUB_DB)
+    milvus_db.init_db(GITHUB_DB, RAG_GITHUB_COLLECTION)
+    if RENEW_COLLECTION:
+        milvus_db.drop_collection(RAG_GITHUB_COLLECTION)
+        milvus_db.create_collection(RAG_GITHUB_COLLECTION)
+    if INSERT_RANDOM_DATA:
+        milvus_db.insert_random_data(RAG_GITHUB_COLLECTION)
+
     # repo = github.get_repo("biabeogo147/Magic-wand")
     # files = get_files_on_repo(repo)
     # for file in files:
@@ -44,3 +56,28 @@ if __name__ == "__main__":
     # repos = github.search_repositories("stars:>1000", sort="stars", order="desc")
     # for repo in repos[:10]:
     #     print(f"Repository: {repo.full_name}")
+
+    repos = REPO_NAMES
+    for repo_name in repos:
+        print(f"Processing repository: {repo_name}")
+        repo = github.get_repo(repo_name)
+        files = get_files_on_repo(repo)
+        print(f"Total files: {len(files)}")
+
+        for file in files:
+            data = []
+            chunks = splitter.split_text(file['content']) if file['content'] else []
+            for chunk in chunks:
+                data.append({
+                    "dense_vector": milvus_db.emb_text(chunk),
+                    "content": chunk,
+                    # Metadata
+                    "type": file['type'],
+                    "path": file['path'],
+                    "repo_name": repo_name,
+                })
+            milvus_db.insert_data(
+                collection_name=RAG_GITHUB_COLLECTION,
+                data=data
+            )
+        print(f"Finished processing repository: {repo_name}")
