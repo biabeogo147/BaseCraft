@@ -9,6 +9,9 @@ if __name__ == "__main__":
     if app_config.RENEW_DB:
         milvus_db.drop_db(app_config.GITHUB_DB)
     milvus_db.init_db(app_config.GITHUB_DB, app_config.RAG_GITHUB_COLLECTION)
+    if app_config.RENEW_COLLECTION:
+        milvus_db.drop_collection(app_config.RAG_GITHUB_COLLECTION)
+        milvus_db.create_collection(app_config.RAG_GITHUB_COLLECTION)
     if app_config.INSERT_RANDOM_DATA:
         milvus_db.insert_random_data(app_config.RAG_GITHUB_COLLECTION)
 

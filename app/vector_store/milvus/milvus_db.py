@@ -19,9 +19,7 @@ def init_db(db_name: str, collection_name: str):
         if db_name not in databases:
             print(f"Initializing database {db_name}...")
             create_db(db_name)
-            schema = create_github_schema()
-            index = create_github_index_params()
-            create_github_rag_collection(collection_name, schema, index)
+            create_collection(collection_name)
         else:
             client.use_database(db_name=db_name)
             print(f"Using existing database {db_name}.")
@@ -112,7 +110,9 @@ def create_github_index_params() -> IndexParams:
     return index_params
 
 
-def create_github_rag_collection(collection_name: str, schema: CollectionSchema, index_params: IndexParams):
+def create_collection(collection_name: str):
+    schema = create_github_schema()
+    index_params = create_github_index_params()
     client.create_collection(
         collection_name=collection_name,
         index_params=index_params,
@@ -120,6 +120,18 @@ def create_github_rag_collection(collection_name: str, schema: CollectionSchema,
         schema=schema,
     )
     print(f"Collection {collection_name} created.")
+
+
+def drop_collection(collection_name: str):
+    try:
+        if collection_name not in client.list_collections():
+            print(f"Collection {collection_name} does not exist.")
+            return
+        client.drop_collection(collection_name=collection_name)
+        print(f"Collection {collection_name} dropped.")
+    except Exception as e:
+        print(f"Failed to drop collection: {e}")
+        raise
 
 
 def emb_text(line) -> List[float]:
