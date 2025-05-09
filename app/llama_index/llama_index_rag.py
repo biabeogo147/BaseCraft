@@ -1,6 +1,7 @@
 from app.config import app_config
 from app.vector_store.milvus import milvus_db
 from app.llama_index import llama_index_crud_vectordb
+from llama_index.core.prompts import RichPromptTemplate
 from app.config.llama_index_config import get_llama_index_model
 
 
@@ -15,5 +16,16 @@ if __name__ == "__main__":
     vector, response = llama_index_crud_vectordb.query_index(question, 3, llm)
     for item in vector:
         print(f"Content: {item['content']}, Score: {item['score']}")
-    print(f"Response: {response}")
 
+    template_str = """We have provided context information below.
+    ---------------------
+    {{ context_str }}
+    ---------------------
+    Given this information, please answer the question: {{ query_str }}
+    """
+    qa_template = RichPromptTemplate(template_str)
+    prompt = qa_template.format(context_str=vector, query_str=question)
+    messages = qa_template.format_messages(context_str=vector, query_str=question)
+    print(f"Response: {response}")
+    print(f"Prompt: {prompt}")
+    print(f"Messages: {messages}")

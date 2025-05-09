@@ -13,11 +13,7 @@ def get_llama_index_model() -> LLM:
             model=app_config.LLAMA_MODEL_NAME,
             base_url=app_config.OLLAMA_HOST,
         )
-
-    return Ollama(
-        model=app_config.LLAMA_MODEL_NAME,
-        base_url=app_config.OLLAMA_HOST,
-    )
+    return LLM()
 
 
 def get_llama_index_embedding() -> BaseEmbedding:
@@ -26,11 +22,7 @@ def get_llama_index_embedding() -> BaseEmbedding:
             model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME,
             base_url=app_config.OLLAMA_HOST,
         )
-
-    return OllamaEmbedding(
-        model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME,
-        base_url=app_config.OLLAMA_HOST,
-    )
+    return BaseEmbedding()
 
 
 def get_llama_index_vector_store() -> BasePydanticVectorStore:
@@ -44,14 +36,5 @@ def get_llama_index_vector_store() -> BasePydanticVectorStore:
             enable_sparse=False,
             metric_type="COSINE",
         )
-
-    return MilvusVectorStore(
-        uri=app_config.MILVUS_HOST,
-        token=f"{app_config.MILVUS_USER}:{app_config.MILVUS_PASSWORD}",
-        collection_name=app_config.RAG_GITHUB_COLLECTION,
-        dim=app_config.EMBED_VECTOR_DIM,
-        overwrite=app_config.RENEW_DB,
-        enable_sparse=False,
-        metric_type="COSINE"
-    )
+    return BasePydanticVectorStore(stores_text=True)
 

@@ -1,9 +1,9 @@
 from ollama import Client
 from typing import Optional, List
 from app.config.app_config import OLLAMA_HOST
-from app.model.model_output.idea_model_output import Idea
-from app.model.model_output.programming_model_output import DirectoryStructure
-from app.model.model_output.structure_model_output import DirectoryDescription
+from app.model.model_output.pydantic.idea_schema import Idea
+from app.model.model_output.pydantic.programming_schema import DirectoryStructure
+from app.model.model_output.pydantic.structure_schema import DirectoryDescription
 
 client = Client(
     host=OLLAMA_HOST,
