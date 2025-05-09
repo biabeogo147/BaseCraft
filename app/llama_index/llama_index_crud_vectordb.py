@@ -14,6 +14,7 @@ def insert_nodes_from_documents(documents: List[Document]) -> Sequence[BaseNode]
     try:
         pipeline = IngestionPipeline(
             transformations=[
+                # Add Chunker Here
                 embedding,
             ],
             vector_store=vector_store,
