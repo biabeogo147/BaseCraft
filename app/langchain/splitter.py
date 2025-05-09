@@ -1,9 +1,7 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
-
-from langchain_text_splitters import Language
 from llama_index.core import Document
-from numpy.f2py.auxfuncs import throw_error
+from langchain_text_splitters import Language
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def split_text(text: str) -> List:
