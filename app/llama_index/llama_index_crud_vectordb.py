@@ -1,5 +1,5 @@
 from llama_index.core.llms import LLM
-from typing import List, Sequence, Optional
+from typing import List, Sequence, Optional, Tuple
 from llama_index.core.schema import BaseNode
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.ingestion import IngestionPipeline
@@ -35,18 +35,22 @@ def insert_random_data():
     ]
     documents = [Document(text=text_line) for i, text_line in enumerate(text)]
     insert_nodes_from_documents(documents)
+    print("Inserted random data into the vector store.")
 
 
-def query_index(query_text: str, top_k: int, llm: Optional[LLM] = None) -> List[dict]:
+def query_index(query_text: str, top_k: int, llm: Optional[LLM] = None) -> Tuple[List[dict], str]:
     try:
-        index = VectorStoreIndex.from_vector_store(vector_store)
+        index = VectorStoreIndex.from_vector_store(
+            vector_store=vector_store,
+            embed_model=embedding,
+        )
         query_engine = index.as_query_engine(
             similarity_top_k=top_k,
             llm=llm,
         )
         response = query_engine.query(query_text)
         results = [{"content": node.node.text, "score": node.score} for node in response.source_nodes]
-        return results
+        return results, response.response
     except Exception as e:
         print(f"Failed to query index: {e}")
         raise

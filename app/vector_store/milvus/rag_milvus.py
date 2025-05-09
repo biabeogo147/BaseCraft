@@ -6,10 +6,11 @@ from app.model.model_query.base_ollama_query import embedding_ollama, base_query
 if __name__ == "__main__":
     question = ["Who is Van Nhan?"]
 
-    # milvus_ddl.drop_github_db()
-    milvus_db.init_db()
+    if app_config.RENEW_DB:
+        milvus_db.drop_db(app_config.GITHUB_DB)
+    milvus_db.init_db(app_config.GITHUB_DB, app_config.RAG_GITHUB_COLLECTION)
     if app_config.INSERT_RANDOM_DATA:
-        milvus_db.insert_random_data()
+        milvus_db.insert_random_data(app_config.RAG_GITHUB_COLLECTION)
 
     client = milvus_db.client
 

@@ -12,43 +12,43 @@ client = MilvusClient(
 # client = MilvusClient("./milvus_demo.db")
 
 
-def init_db():
+def init_db(db_name: str, collection_name: str):
     """Initialize the database and index with LlamaIndex."""
     try:
         databases = client.list_databases()
-        if app_config.GITHUB_DB not in databases:
-            print(f"Initializing database {app_config.GITHUB_DB}...")
-            create_github_db()
+        if db_name not in databases:
+            print(f"Initializing database {db_name}...")
+            create_db(db_name)
             schema = create_github_schema()
             index = create_github_index_params()
-            create_github_rag_collection(schema, index)
+            create_github_rag_collection(collection_name, schema, index)
         else:
-            client.using_database(db_name=app_config.GITHUB_DB)
-            print(f"Using existing database {app_config.GITHUB_DB}.")
+            client.use_database(db_name=db_name)
+            print(f"Using existing database {db_name}.")
     except Exception as e:
         print(f"Failed to initialize database: {e}")
         raise
 
 
-def drop_github_db():
+def drop_db(db_name: str):
     """Drop the database and all its collections."""
     try:
-        if app_config.GITHUB_DB not in client.list_databases():
-            print(f"Database {app_config.GITHUB_DB} does not exist.")
+        if db_name not in client.list_databases():
+            print(f"Database {db_name} does not exist.")
             return
-        client.using_database(db_name=app_config.GITHUB_DB)
+        client.use_database(db_name=db_name)
         collections = client.list_collections()
         for collection in collections:
             client.drop_collection(collection_name=collection)
             print(f"Collection {collection} dropped.")
-        client.drop_database(db_name=app_config.GITHUB_DB)
-        print(f"Database {app_config.GITHUB_DB} dropped.")
+        client.drop_database(db_name=db_name)
+        print(f"Database {db_name} dropped.")
     except Exception as e:
         print(f"Failed to drop database: {e}")
         raise
 
 
-def create_github_db():
+def create_db(db_name: str):
     """database.replica.number (integer): The number of replicas for the specified database.
     database.resource.groups (string): The names of the resource groups associated with the specified database in a comma-separated list.
     database.diskquota.mb (integer): The maximum size of the disk space for the specified database, in megabytes (MB).
@@ -56,13 +56,13 @@ def create_github_db():
     database.force.deny.writing (boolean): Whether to force the specified database to deny writing operations.
     database.force.deny.reading (boolean): Whether to force the specified database to deny reading operations."""
     client.create_database(
-        db_name=app_config.GITHUB_DB,
+        db_name=db_name,
         properties=None,
     )
-    client.using_database(
-        db_name=app_config.GITHUB_DB,
+    client.use_database(
+        db_name=db_name,
     )
-    print(f"Database {app_config.GITHUB_DB} created and set as current database.")
+    print(f"Database {db_name} created and set as current database.")
 
 
 def create_github_schema() -> CollectionSchema:
@@ -112,14 +112,14 @@ def create_github_index_params() -> IndexParams:
     return index_params
 
 
-def create_github_rag_collection(schema: CollectionSchema, index_params: IndexParams):
+def create_github_rag_collection(collection_name: str, schema: CollectionSchema, index_params: IndexParams):
     client.create_collection(
-        collection_name=app_config.RAG_GITHUB_COLLECTION,
+        collection_name=collection_name,
         index_params=index_params,
         overwrite=True,
         schema=schema,
     )
-    print(f"Collection {app_config.RAG_GITHUB_COLLECTION} created.")
+    print(f"Collection {collection_name} created.")
 
 
 def emb_text(line) -> List[float]:
@@ -130,7 +130,7 @@ def emb_text(line) -> List[float]:
         return [0] * app_config.EMBED_VECTOR_DIM
 
 
-def insert_random_data():
+def insert_random_data(collection_name: str):
     data = []
     text_lines = [
         "There are 2 people in the kitchen.",
@@ -139,11 +139,9 @@ def insert_random_data():
         "Van Nhan is a Dau Buoi."
     ]
     for i, line in enumerate(tqdm(text_lines, desc="Creating embeddings")):
-        data_line = {
+        data.append({
             "dense_vector": emb_text(line),
             "content": line,
-        }
-        data.append(data_line)
-        client.insert(collection_name=app_config.RAG_GITHUB_COLLECTION, data=data_line)
-    # client.insert(collection_name=app_config.RAG_GITHUB_COLLECTION, data=data)
-    print(f"Inserted {len(data)} data into collection {app_config.RAG_GITHUB_COLLECTION}.")
+        })
+    client.insert(collection_name=collection_name, data=data)
+    print(f"Inserted {len(data)} data into collection {collection_name}.")
