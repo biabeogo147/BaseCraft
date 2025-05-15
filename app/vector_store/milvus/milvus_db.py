@@ -4,13 +4,25 @@ from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, IS_OLLAMA, \
-    MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM
+    MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTION, \
+    INSERT_RANDOM_DATA
 
 client = MilvusClient(
     uri=MILVUS_HOST,
     token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
 )
 # client = MilvusClient("./milvus_demo.db")
+
+
+def setup_vector_store():
+    if RENEW_DB:
+        drop_db(GITHUB_DB)
+    init_db(GITHUB_DB, RAG_GITHUB_COLLECTION)
+    if RENEW_COLLECTION:
+        drop_collection(RAG_GITHUB_COLLECTION)
+        create_collection(RAG_GITHUB_COLLECTION)
+    if INSERT_RANDOM_DATA:
+        insert_random_data(RAG_GITHUB_COLLECTION)
 
 
 def init_db(db_name: str, collection_name: str):

@@ -1,12 +1,23 @@
 from llama_index.core.llms import LLM
-from typing import List, Sequence, Optional, Tuple
 from llama_index.core.schema import BaseNode
+from app.vector_store.milvus import milvus_db
+from typing import List, Sequence, Optional, Tuple
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.ingestion import IngestionPipeline
+from app.config.app_config import LLAMA_INDEX_DB, LLAMA_INDEX_COLLECTION, RENEW_COLLECTION, INSERT_RANDOM_DATA
 from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store
 
 embedding = get_llama_index_embedding()
 vector_store = get_llama_index_vector_store()
+
+
+def setup_vector_store():
+    milvus_db.init_db(LLAMA_INDEX_DB, LLAMA_INDEX_COLLECTION)
+    if RENEW_COLLECTION:
+        milvus_db.drop_collection(LLAMA_INDEX_COLLECTION)
+        milvus_db.create_collection(LLAMA_INDEX_COLLECTION)
+    if INSERT_RANDOM_DATA:
+        insert_random_data()
 
 
 def insert_nodes_from_documents(documents: List[Document]) -> Sequence[BaseNode]:
@@ -14,7 +25,6 @@ def insert_nodes_from_documents(documents: List[Document]) -> Sequence[BaseNode]
     try:
         pipeline = IngestionPipeline(
             transformations=[
-                # Add Chunker Here
                 embedding,
             ],
             vector_store=vector_store,

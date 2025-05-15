@@ -1,22 +1,15 @@
 import json
 from app.config import app_config
 from app.vector_store.milvus import milvus_db
+from app.vector_store.milvus.milvus_db import setup_vector_store
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
 if __name__ == "__main__":
     question = ["Who is Van Nhan?"]
 
-    if app_config.RENEW_DB:
-        milvus_db.drop_db(app_config.GITHUB_DB)
-    milvus_db.init_db(app_config.GITHUB_DB, app_config.RAG_GITHUB_COLLECTION)
-    if app_config.RENEW_COLLECTION:
-        milvus_db.drop_collection(app_config.RAG_GITHUB_COLLECTION)
-        milvus_db.create_collection(app_config.RAG_GITHUB_COLLECTION)
-    if app_config.INSERT_RANDOM_DATA:
-        milvus_db.insert_random_data(app_config.RAG_GITHUB_COLLECTION)
+    setup_vector_store()
 
     client = milvus_db.client
-
     search = client.search(
         data=embedding_ollama(text=question, model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME),
         collection_name=app_config.RAG_GITHUB_COLLECTION,
