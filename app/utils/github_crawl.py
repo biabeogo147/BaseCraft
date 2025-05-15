@@ -2,7 +2,7 @@ import os
 from github import Github
 from typing import List, Dict
 from github.Repository import Repository
-from app.config.app_config import FILE_TYPE_MAPPING, GITHUB_API_KEY
+from app.config.app_config import FILE_TYPE_MAPPING, GITHUB_API_KEY, EXTENSION_TO_LANGUAGE
 
 github = Github(GITHUB_API_KEY)
 
@@ -19,12 +19,13 @@ def get_files_on_repo(repo: Repository) -> List[Dict]:
             path = content.path
             extension = os.path.splitext(path)[1].lower()
             file_type = FILE_TYPE_MAPPING.get(extension, 'other')
+            extension = EXTENSION_TO_LANGUAGE.get(extension, 'other')
 
             try:
                 file_content = content.decoded_content.decode("utf-8")
-                files.append({"path": path, "content": file_content, "type": file_type})
+                files.append({"path": path, "content": file_content, "type": file_type, "language": extension})
             except Exception as e:
                 print(f"Cannot decode {path}: {e}")
-                files.append({"path": path, "content": None, "type": file_type})
+                files.append({"path": path, "content": None, "type": file_type, "language": extension})
 
     return files

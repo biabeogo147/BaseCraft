@@ -3,9 +3,11 @@ from app.config.llama_index_config import get_llama_index_model
 from app.llama_index.llama_index_vectordb import query_index, setup_vector_store
 
 if __name__ == "__main__":
-    question = "How many people in the kitchen?"
+    question = "Create Python Flappy Bird project"
 
     setup_vector_store()
+
+    cchat_store =
 
     llm = get_llama_index_model()
     vector, response = query_index(question, 3, llm)

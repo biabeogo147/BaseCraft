@@ -1,6 +1,7 @@
 import os
 
 IS_OLLAMA = True
+CACHE_NAME = "redis"
 EMBED_VECTOR_DIM = 1024
 VECTORDB_NAME = "milvus"
 
@@ -22,9 +23,9 @@ MILVUS_HOST = "http://localhost:19530"
 MILVUS_USER = "root"
 MILVUS_PASSWORD = "Milvus"
 
-
-LLAMA_INDEX_DB = "default"
-LLAMA_INDEX_COLLECTION = "llama_index_collection"
+REDIS_HOST = "http://localhost"
+REDIS_PORT = 6379
+REDIS_PASSWORD = "Redis"
 
 GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 REPO_NAMES = [
@@ -46,4 +47,33 @@ FILE_TYPE_MAPPING = {
     '.exe': 'binary', '.bin': 'binary', '.dll': 'binary',
 
     '.pdf': 'document', '.doc': 'document', '.docx': 'document',
+}
+EXTENSION_TO_LANGUAGE = {
+    '.py': 'Python',
+    '.java': 'Java',
+    '.js': 'JavaScript',
+    '.cpp': 'C++',
+    '.cc': 'C++',
+    '.cxx': 'C++',
+    '.hpp': 'C++',
+    '.h': 'C/C++',
+    '.c': 'C',
+    '.cs': 'C#',
+    '.rb': 'Ruby',
+    '.php': 'PHP',
+    '.go': 'Go',
+    '.rs': 'Rust',
+    '.swift': 'Swift',
+    '.kt': 'Kotlin',
+    '.ts': 'TypeScript',
+    '.tsx': 'TypeScript',
+    '.html': 'HTML',
+    '.css': 'CSS',
+    '.sh': 'Shell Script',
+    '.sql': 'SQL',
+    '.md': 'Markdown',
+    '.json': 'JSON',
+    '.xml': 'XML',
+    '.yaml': 'YAML',
+    '.yml': 'YAML',
 }

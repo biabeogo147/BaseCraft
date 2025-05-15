@@ -1,21 +1,22 @@
 from llama_index.core.llms import LLM
 from llama_index.core.schema import BaseNode
-from app.vector_store.milvus import milvus_db
 from typing import List, Sequence, Optional, Tuple
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.ingestion import IngestionPipeline
-from app.config.app_config import LLAMA_INDEX_DB, LLAMA_INDEX_COLLECTION, RENEW_COLLECTION, INSERT_RANDOM_DATA
-from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store
+from app.config.app_config import RENEW_COLLECTION, INSERT_RANDOM_DATA, RAG_GITHUB_COLLECTION
+from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store, LLAMA_INDEX_DB, \
+    get_llama_index_cache
 
+cache = get_llama_index_cache()
 embedding = get_llama_index_embedding()
 vector_store = get_llama_index_vector_store()
 
 
 def setup_vector_store():
-    milvus_db.init_db(LLAMA_INDEX_DB, LLAMA_INDEX_COLLECTION)
+    vector_store.init_db(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
     if RENEW_COLLECTION:
-        milvus_db.drop_collection(LLAMA_INDEX_COLLECTION)
-        milvus_db.create_collection(LLAMA_INDEX_COLLECTION)
+        vector_store.drop_collection(RAG_GITHUB_COLLECTION)
+        vector_store.create_collection(RAG_GITHUB_COLLECTION)
     if INSERT_RANDOM_DATA:
         insert_random_data()
 
