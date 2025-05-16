@@ -9,7 +9,10 @@ RENEW_DB = False
 IS_METADATA = True
 RENEW_COLLECTION = True
 INSERT_RANDOM_DATA = False
+DEFAULT_TEXT_FIELD = "text"
+DEFAULT_METRIC_TYPE = "COSINE"
 GITHUB_DB = "github_knowledge_base"
+DEFAULT_EMBEDDING_FIELD = "embedding"
 RAG_GITHUB_COLLECTION = "rag_github_collection"
 
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"

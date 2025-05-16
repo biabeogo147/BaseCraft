@@ -5,7 +5,7 @@ from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.model.model_query.base_ollama_query import embedding_ollama
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, IS_OLLAMA, \
     MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTION, \
-    INSERT_RANDOM_DATA
+    INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE
 
 client = MilvusClient(
     uri=MILVUS_HOST,
@@ -36,6 +36,9 @@ def init_db(db_name: str, collection_name: str):
         else:
             client.use_database(db_name=db_name)
             print(f"Using existing database {db_name}.")
+            if RENEW_COLLECTION:
+                drop_collection(RAG_GITHUB_COLLECTION)
+                create_collection(RAG_GITHUB_COLLECTION)
     except Exception as e:
         print(f"Failed to initialize database: {e}")
         raise
@@ -83,23 +86,23 @@ def create_github_schema() -> CollectionSchema:
     )
     schema.add_field(
         datatype=DataType.INT64,
+        element_type=None,
         field_name="id",
         is_primary=True,
-        auto_id=True,
-        element_type=None,
+        auto_id=False,
         dim=None,
     )
     schema.add_field(
-        dim=EMBED_VECTOR_DIM,
+        field_name=DEFAULT_EMBEDDING_FIELD,
         datatype=DataType.FLOAT_VECTOR,
-        field_name="dense_vector",
+        dim=EMBED_VECTOR_DIM,
         element_type=None,
         is_primary=False,
         auto_id=False,
     )
     schema.add_field(
+        field_name=DEFAULT_TEXT_FIELD,
         datatype=DataType.VARCHAR,
-        field_name="content",
         element_type=None,
         is_primary=False,
         max_length=500,
@@ -115,10 +118,10 @@ def create_github_index_params() -> IndexParams:
         index_type="AUTOINDEX",
     )
     index_params.add_index(
-        index_name="dense_vector_index",
-        field_name="dense_vector",
         index_type="AUTOINDEX",
-        metric_type="COSINE"
+        index_name="dense_vector_index",
+        metric_type=DEFAULT_METRIC_TYPE,
+        field_name=DEFAULT_EMBEDDING_FIELD,
     )
     return index_params
 

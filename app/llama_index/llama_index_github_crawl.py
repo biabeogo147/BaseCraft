@@ -33,5 +33,5 @@ if __name__ == "__main__":
                 )
                 data_vector_store.append(document)
             nodes = insert_nodes_to_vector_store(data_vector_store)
-            insert_nodes_to_cache(nodes)
+            # insert_nodes_to_cache(nodes)
         print(f"Finished processing repository: {repo_name}")

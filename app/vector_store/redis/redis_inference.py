@@ -17,14 +17,14 @@ def insert_sample():
     index.load(
         data=[{
             "id": "1",
-            "doc_id": "1",
+            "doc_id": "doc_1",
             "text": "hello world",
             "vector": [0 for _ in range(EMBED_VECTOR_DIM)],
-            "repo_name": "test_repo",
-            "language": "python",
-            "chunk_index": 0,
-            "path": "/path/to/file.py",
             "type": "file",
+            "chunk_index": 0,
+            "language": "python",
+            "repo_name": "test_repo",
+            "path": "/path/to/file.py",
         }],
     )
     index.delete(drop=True)

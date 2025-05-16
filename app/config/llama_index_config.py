@@ -53,15 +53,14 @@ def get_llama_index_embedding() -> BaseEmbedding:
 
 def get_llama_index_vector_store() -> BasePydanticVectorStore:
     if VECTORDB_NAME == "milvus":
-        milvus_db.init_db(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
         vector_store = MilvusVectorStore(
             uri=MILVUS_HOST,
-            text_key="content",
             overwrite=RENEW_DB,
             enable_sparse=False,
-            metric_type="COSINE",
             dim=EMBED_VECTOR_DIM,
-            embedding_field="dense_vector",
+            similarity_metric="COSINE",
+            text_key=DEFAULT_TEXT_FIELD,
+            embedding_key=DEFAULT_EMBEDDING_FIELD,
             collection_name=RAG_GITHUB_COLLECTION,
             token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
         )
