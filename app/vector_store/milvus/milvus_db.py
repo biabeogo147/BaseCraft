@@ -22,7 +22,7 @@ def setup_vector_store():
         drop_collection(RAG_GITHUB_COLLECTION)
         create_collection(RAG_GITHUB_COLLECTION)
     if INSERT_RANDOM_DATA:
-        insert_random_data(RAG_GITHUB_COLLECTION)
+        insert_random_data(GITHUB_DB, RAG_GITHUB_COLLECTION)
 
 
 def init_db(db_name: str, collection_name: str):
@@ -155,7 +155,11 @@ def emb_text(line) -> List[float]:
         return [0] * EMBED_VECTOR_DIM
 
 
-def insert_random_data(collection_name: str):
+def insert_random_data(db_name: str, collection_name: str):
+    client.use_database(
+        db_name=db_name,
+    )
+
     data = []
     text_lines = [
         "There are 2 people in the kitchen.",

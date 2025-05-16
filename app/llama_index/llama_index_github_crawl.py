@@ -4,14 +4,11 @@ from langchain_text_splitters import Language
 from app.utils.github_crawl import github, get_files_on_repo
 from app.config.app_config import GITHUB_API_KEY, REPO_NAMES
 from app.config.llama_index_config import LANGUAGE_LLAMA_INDEX
-from app.llama_index.llama_index_vectordb import setup_vector_store, insert_nodes_from_documents
-
+from app.llama_index.llama_index_vectordb import insert_nodes_to_vector_store, insert_nodes_to_cache
 
 if __name__ == "__main__":
     if GITHUB_API_KEY is None:
         raise ValueError("GITHUB_API_KEY environment variable not set")
-
-    setup_vector_store()
 
     repos = REPO_NAMES
     for repo_name in repos:
@@ -21,7 +18,7 @@ if __name__ == "__main__":
         print(f"Total files: {len(files)}")
 
         for file in files:
-            data = []
+            data_vector_store = []
             chunks = splitter.split_source_code(file['content'], LANGUAGE_LLAMA_INDEX.get(file['language'], Language.PYTHON)) if file['content'] else []
             for index, chunk in enumerate(chunks):
                 document = Document(
@@ -34,6 +31,7 @@ if __name__ == "__main__":
                         "language": file['language'],
                     }
                 )
-                data.append(document)
-            insert_nodes_from_documents(data)
+                data_vector_store.append(document)
+            nodes = insert_nodes_to_vector_store(data_vector_store)
+            insert_nodes_to_cache(nodes)
         print(f"Finished processing repository: {repo_name}")

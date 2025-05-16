@@ -1,15 +1,16 @@
 from redis import Redis
-from app.config import app_config
+from app.config.app_config import *
 from llama_index.core.llms import LLM
-from redisvl.schema import IndexSchema
 from llama_index.llms.ollama import Ollama
+from app.vector_store.milvus import milvus_db
 from langchain_text_splitters import Language
 from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.vector_stores.redis import RedisVectorStore
 from llama_index.vector_stores.milvus import MilvusVectorStore
+from llama_index.core.storage.kvstore.types import BaseKVStore
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.storage.chat_store.redis import RedisChatStore
+from app.vector_store.milvus.milvus_db import insert_random_data
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
 
 LLAMA_INDEX_DB = "default"
 LANGUAGE_LLAMA_INDEX = {
@@ -33,99 +34,51 @@ LANGUAGE_LLAMA_INDEX = {
 
 
 def get_llama_index_model() -> LLM:
-    if app_config.IS_OLLAMA:
+    if IS_OLLAMA:
         return Ollama(
-            model=app_config.LLAMA_MODEL_NAME,
-            base_url=app_config.OLLAMA_HOST,
+            model=LLAMA_MODEL_NAME,
+            base_url=OLLAMA_HOST,
         )
     return LLM()
 
 
 def get_llama_index_embedding() -> BaseEmbedding:
-    if app_config.IS_OLLAMA:
+    if IS_OLLAMA:
         return OllamaEmbedding(
-            model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME,
-            base_url=app_config.OLLAMA_HOST,
+            model_name=MXBAI_EMBED_LARGE_MODEL_NAME,
+            base_url=OLLAMA_HOST,
         )
     return BaseEmbedding()
 
 
 def get_llama_index_vector_store() -> BasePydanticVectorStore:
-    if app_config.VECTORDB_NAME == "milvus":
-        return MilvusVectorStore(
-            uri=app_config.MILVUS_HOST,
-            token=f"{app_config.MILVUS_USER}:{app_config.MILVUS_PASSWORD}",
-            collection_name=app_config.RAG_GITHUB_COLLECTION,
-            dim=app_config.EMBED_VECTOR_DIM,
-            overwrite=app_config.RENEW_DB,
+    if VECTORDB_NAME == "milvus":
+        milvus_db.init_db(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
+        vector_store = MilvusVectorStore(
+            uri=MILVUS_HOST,
+            text_key="content",
+            overwrite=RENEW_DB,
             enable_sparse=False,
             metric_type="COSINE",
+            dim=EMBED_VECTOR_DIM,
+            embedding_field="dense_vector",
+            collection_name=RAG_GITHUB_COLLECTION,
+            token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
         )
+        if INSERT_RANDOM_DATA:
+            insert_random_data(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
+        return vector_store
     return BasePydanticVectorStore(stores_text=True)
 
 
-def get_llama_index_cache() -> BasePydanticVectorStore:
-    if app_config.CACHE_NAME:
-        schema =  IndexSchema.from_dict({
-            "index": {
-                "name": "my-index",
-                "key_separator": ":",
-                "storage_type": "json",
-            },
-            "fields": [
-                {
-                    "name": "id",
-                    "type": "tag"
-                },
-                {
-                    "name": "content",
-                    "type": "text"
-                },
-                {
-                    "name": "dense_vector",
-                    "type": "vector",
-                    "attrs": {
-                        "algorithm": "flat",
-                        "datatype": "float32",
-                        "distance_metric": "cosine",
-                        "dims": app_config.EMBED_VECTOR_DIM,
-                    }
-                },
-                # Metadata
-                {
-                    "name": "repo_name",
-                    "type": "tag"
-                },
-                {
-                    "name": "language",
-                    "type": "tag"
-                },
-                {
-                    "name": "chunk_index",
-                    "type": "tag"
-                },
-                {
-                    "name": "path",
-                    "type": "tag"
-                },
-                {
-                    "name": "type",
-                    "type": "tag"
-                }
-            ]
-        })
-        redis = Redis(host=app_config.REDIS_HOST, port=app_config.REDIS_PORT, password=app_config.REDIS_PASSWORD)
-        return RedisVectorStore(
-            redis=redis,
-            schema=schema,
-            overwrite=app_config.RENEW_DB,
+def get_llama_index_cache() -> BaseKVStore:
+    if CACHE_NAME == "redis":
+        redis_client = Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            db=REDIS_GITHUB_RAG_DB,
+            password=REDIS_PASSWORD,
         )
-    return BasePydanticVectorStore(stores_text=True)
-
-
-def get_llama_index_chat_store():
-    if app_config.CACHE_NAME == "redis":
-        redis = Redis(host=app_config.REDIS_HOST, port=app_config.REDIS_PORT, password=app_config.REDIS_PASSWORD)
-        return RedisChatStore(redis_client=redis, ttl=3000)
-    return BasePydanticVectorStore(stores_text=True)
-
+        redis_client.flushdb()
+        return RedisCache.from_redis_client(redis_client)
+    return BaseKVStore()

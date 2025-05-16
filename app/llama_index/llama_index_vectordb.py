@@ -2,26 +2,16 @@ from llama_index.core.llms import LLM
 from llama_index.core.schema import BaseNode
 from typing import List, Sequence, Optional, Tuple
 from llama_index.core import VectorStoreIndex, Document
-from llama_index.core.ingestion import IngestionPipeline
-from app.config.app_config import RENEW_COLLECTION, INSERT_RANDOM_DATA, RAG_GITHUB_COLLECTION
-from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store, LLAMA_INDEX_DB, \
-    get_llama_index_cache
+from app.config.app_config import RAG_GITHUB_COLLECTION
+from llama_index.core.ingestion import IngestionPipeline, IngestionCache
+from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store, get_llama_index_cache
 
 cache = get_llama_index_cache()
 embedding = get_llama_index_embedding()
 vector_store = get_llama_index_vector_store()
 
 
-def setup_vector_store():
-    vector_store.init_db(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
-    if RENEW_COLLECTION:
-        vector_store.drop_collection(RAG_GITHUB_COLLECTION)
-        vector_store.create_collection(RAG_GITHUB_COLLECTION)
-    if INSERT_RANDOM_DATA:
-        insert_random_data()
-
-
-def insert_nodes_from_documents(documents: List[Document]) -> Sequence[BaseNode]:
+def insert_nodes_to_vector_store(documents: List[Document]) -> Sequence[BaseNode]:
     """Create nodes from documents."""
     try:
         pipeline = IngestionPipeline(
@@ -37,16 +27,38 @@ def insert_nodes_from_documents(documents: List[Document]) -> Sequence[BaseNode]
         raise
 
 
-def insert_random_data():
-    text = [
-        "There are 2 people in the kitchen.",
-        "There are 5 people in the bathroom.",
-        "There are 10 people in the living room.",
-        "Van Nhan is a Dau Buoi."
-    ]
-    documents = [Document(text=text_line) for i, text_line in enumerate(text)]
-    insert_nodes_from_documents(documents)
-    print("Inserted random data into the vector store.")
+def insert_nodes_to_cache_from_documents(documents: List[Document]) -> Sequence[BaseNode]:
+    """Create nodes from documents."""
+    try:
+        pipeline = IngestionPipeline(
+            transformations=[
+                embedding,
+            ],
+            cache=IngestionCache(
+                cache=cache,
+                collection=RAG_GITHUB_COLLECTION,
+            ),
+        )
+        nodes = pipeline.run(documents=documents)
+        return nodes
+    except Exception as e:
+        print(f"Failed to create nodes: {e}")
+        raise
+
+
+def insert_nodes_to_cache(nodes: Sequence[BaseNode]) -> None:
+    """Insert nodes to cache."""
+    try:
+        cache.put_all(
+            kv_pairs=[
+                (node.get_doc_id(), node.to_dict())
+                for node in nodes
+            ],
+            collection=RAG_GITHUB_COLLECTION,
+        )
+    except Exception as e:
+        print(f"Failed to insert nodes to cache: {e}")
+        raise
 
 
 def query_index(query_text: str, top_k: int, llm: Optional[LLM] = None) -> Tuple[List[dict], str]:

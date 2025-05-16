@@ -23,9 +23,10 @@ MILVUS_HOST = "http://localhost:19530"
 MILVUS_USER = "root"
 MILVUS_PASSWORD = "Milvus"
 
-REDIS_HOST = "http://localhost"
+REDIS_HOST = "localhost"
 REDIS_PORT = 6379
-REDIS_PASSWORD = "Redis"
+REDIS_GITHUB_RAG_DB = 0
+REDIS_PASSWORD = "PASSWORD"
 
 GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 REPO_NAMES = [

@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis/redis-stack:6.2.6-v19
+    container_name: redis_vector
+    ports:
+      - "6379:6379"
+    command: ["redis-stack-server", "--requirepass", "${REDIS_PASSWORD}", "--bind", "0.0.0.0"]
+    volumes:
+      - redis-vector-data:/data
+    restart: unless-stopped
+    networks:
+      - redis-network
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis_insight
+    ports:
+      - "5540:5540"
+    networks:
+      - redis-network
+
+networks:
+  redis-network:
+    driver: bridge
+
+volumes:
+  redis-vector-data:
