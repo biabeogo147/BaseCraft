@@ -2,7 +2,6 @@ from redis import Redis
 from app.config.app_config import *
 from llama_index.core.llms import LLM
 from llama_index.llms.ollama import Ollama
-from app.vector_store.milvus import milvus_db
 from langchain_text_splitters import Language
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.milvus import MilvusVectorStore
