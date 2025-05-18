@@ -2,10 +2,10 @@ from tqdm import tqdm
 from typing import List
 from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
-from app.model.model_query.base_ollama_query import embedding_ollama
-from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, IS_OLLAMA, \
-    MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTION, \
+from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, \
+    EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTION, \
     INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE
+from app.utils.embedding import emb_text
 
 client = MilvusClient(
     uri=MILVUS_HOST,
@@ -148,14 +148,6 @@ def drop_collection(collection_name: str):
     except Exception as e:
         print(f"Failed to drop collection: {e}")
         raise
-
-
-def emb_text(line) -> List[float]:
-    if IS_OLLAMA:
-        result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
-        return result[0]
-    else:
-        return [0] * EMBED_VECTOR_DIM
 
 
 def insert_random_data(db_name: str, collection_name: str):

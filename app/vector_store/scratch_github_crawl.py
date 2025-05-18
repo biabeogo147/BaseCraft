@@ -1,6 +1,8 @@
 from app.utils import splitter
-from langchain_text_splitters import Language
+from app.utils.embedding import emb_text
 from app.vector_store.milvus import milvus_db
+from langchain_text_splitters import Language
+from app.vector_store.redis.redis_db import setup_cache
 from app.utils.github_crawl import get_files_on_repo, github
 from app.vector_store.milvus.milvus_db import setup_vector_store
 from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, RAG_GITHUB_COLLECTION
@@ -10,6 +12,7 @@ if __name__ == "__main__":
         raise ValueError("GITHUB_API_KEY environment variable not set")
 
     setup_vector_store()
+    cache_index = setup_cache()
 
     repos = REPO_NAMES
     for repo_name in repos:
@@ -19,19 +22,34 @@ if __name__ == "__main__":
         print(f"Total files: {len(files)}")
 
         for file in files:
-            data = []
+            data_vector_store, data_cache = [], []
             chunks = splitter.split_source_code(file['content'], Language.PYTHON) if file['content'] else []
             for chunk in chunks:
-                data.append({
-                    "dense_vector": milvus_db.emb_text(chunk),
+                embedding = emb_text(chunk)
+                data_vector_store.append({
                     "content": chunk,
+                    "dense_vector": embedding,
                     # Metadata
                     "type": file['type'],
                     "path": file['path'],
                     "repo_name": repo_name,
                 })
+                data_cache.append({
+                    "id": f"{repo_name}:{file['path']}:{chunks.index(chunk)}",
+                    "doc_id": f"{repo_name}:{file['path']}",
+                    "vector": embedding,
+                    "text": chunk,
+                    # Metadata
+                    "path": file['path'],
+                    "type": file['type'],
+                    "repo_name": repo_name,
+                    "language": file['language'],
+                    "chunk_index": chunks.index(chunk),
+                })
             milvus_db.insert_data(
                 collection_name=RAG_GITHUB_COLLECTION,
-                data=data
+                data=data_vector_store
             )
+            cache_index.load(data=data_cache)
+
         print(f"Finished processing repository: {repo_name}")
