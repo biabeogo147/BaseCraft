@@ -1,34 +1,76 @@
-from redis import Redis
-from redisvl.index import SearchIndex
-from app.vector_store.redis.redis_db import create_redis_github_schema
-from app.config.app_config import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, EMBED_VECTOR_DIM
+import numpy as np
+from redisvl.query import VectorQuery
+from app.utils.embedding import emb_text
+from app.config.app_config import INSERT_RANDOM_DATA
+from app.vector_store.redis.redis_db import setup_cache
+
+index = setup_cache()
 
 
 def insert_sample():
-    redis = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
-    print("Connected to Redis: ", redis.ping())
+    print("Loading sample data into Redis...")
 
-    index = SearchIndex(
-        schema=create_redis_github_schema(),
-        redis_client=redis,
-        validate_on_load=True
-    )
-    index.create(overwrite=True, drop=False)
+    chunk_index = [0, 1, 2, 3, 4]
+    language = ["Python", "Java", "JavaScript", "C++", "C"]
+    type = ["code", "image", "archive", "binary", "document"]
+    repo_name = ["repo1", "repo2", "repo3", "repo4", "repo5"]
+    text = [
+        "There are two people in the kitchen.",
+        "The cat is on the table.",
+        "The dog is barking outside.",
+        "The sun is shining brightly.",
+        "The flowers are blooming in the garden.",
+    ]
+    path = [
+        "path/to/file1.py",
+        "path/to/file2.java",
+        "path/to/file3.js",
+        "path/to/file4.cpp",
+        "path/to/file5.c",
+    ]
+
     index.load(
         data=[{
-            "id": "1",
-            "doc_id": "doc_1",
-            "text": "hello world",
-            "vector": [0 for _ in range(EMBED_VECTOR_DIM)],
-            "type": "file",
-            "chunk_index": 0,
-            "language": "python",
-            "repo_name": "test_repo",
-            "path": "/path/to/file.py",
-        }],
+                "id": f"{repo_name[i]}:{path[i]}:{chunk_index[i]}",
+                "doc_id": f"{repo_name[i]}:{path[i]}",
+                "vector": np.array(emb_text(text[i]), dtype=np.float32).tobytes(), # If storage type is "hash", then the vector field must be a byte array
+                "text": text[i],
+                # Metadata
+                "type": type[i],
+                "path": path[i],
+                "language": language[i],
+                "repo_name": repo_name[i],
+                "chunk_index": chunk_index[i],
+            }
+            for i in range(len(text))
+        ],
     )
-    index.delete(drop=True)
+
+    print("Sample data loaded into Redis.")
+
+
+def query_sample():
+    print("Querying Redis for similar vectors...")
+
+    query_text = "How many people are in the kitchen?"
+    query_vector = np.array(emb_text(query_text), dtype=np.float32).tobytes()
+
+    query = VectorQuery(
+        num_results=5,
+        vector=query_vector,
+        vector_field_name="vector",
+        return_fields=["vector_distance", "id", "text"],
+    )
+
+    # Work only on Hash storage type
+    results = index.query(query=query)
+
+    print("Query results:")
+    for result in results:
+        print(result)
 
 
 if __name__ == "__main__":
-    insert_sample()
+    if INSERT_RANDOM_DATA:
+        insert_sample()
+    query_sample()

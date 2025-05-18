@@ -77,6 +77,7 @@ def get_llama_index_cache() -> BaseKVStore:
             db=REDIS_GITHUB_RAG_DB,
             password=REDIS_PASSWORD,
         )
-        redis_client.flushdb()
+        if RENEW_CACHE:
+            redis_client.flushdb()
         return RedisCache.from_redis_client(redis_client)
     return BaseKVStore()

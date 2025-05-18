@@ -1,5 +1,6 @@
 redis~=5.3.0
 tqdm~=4.67.1
+numpy~=1.26.4
 ollama~=0.4.8
 redisvl~=0.4.1
 PyGithub~=2.6.1

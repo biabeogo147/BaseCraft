@@ -1,8 +1,7 @@
 from redis import Redis
 from redisvl.index import SearchIndex
 from redisvl.schema import IndexSchema
-from app.config.app_config import EMBED_VECTOR_DIM, RAG_GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, \
-    RENEW_DB
+from app.config.app_config import EMBED_VECTOR_DIM, RAG_GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, RENEW_CACHE
 
 redis = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
 print("Connected to Redis: ", redis.ping())
@@ -12,8 +11,9 @@ def setup_cache():
     """
     Set up the vector store for Redis.
     """
-    if RENEW_DB:
+    if RENEW_CACHE:
         redis.flushdb()
+        print("Redis cache flushed.")
     schema = create_redis_github_schema()
     index = create_redis_index(schema)
     print("Vector store setup complete.")
@@ -27,9 +27,9 @@ def create_redis_index(schema: IndexSchema) -> SearchIndex:
     index = SearchIndex(
         schema=schema,
         redis_client=redis,
-        validate_on_load=True
+        validate_on_load=True,
     )
-    index.create(overwrite=True, drop=False)
+    index.create(overwrite=True)
     return index
 
 
@@ -40,8 +40,9 @@ def create_redis_github_schema() -> IndexSchema:
     schema = IndexSchema.from_dict({
         "index": {
             "name": RAG_GITHUB_COLLECTION,
+            "prefix": "github",
             "key_separator": ":",
-            "storage_type": "json",
+            "storage_type": "hash",
         },
         "fields": [
             {
@@ -62,8 +63,8 @@ def create_redis_github_schema() -> IndexSchema:
                 "attrs": {
                     "algorithm": "flat",
                     "datatype": "float32",
-                    "distance_metric": "cosine",
                     "dims": EMBED_VECTOR_DIM,
+                    "distance_metric": "cosine",
                 }
             },
             # Metadata
@@ -90,3 +91,4 @@ def create_redis_github_schema() -> IndexSchema:
         ]
     })
     return schema
+
