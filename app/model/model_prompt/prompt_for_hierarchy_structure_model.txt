@@ -1,0 +1,71 @@
+You are given a JSON object that represents the structure of a software project, including directories and files. Each file has a path and a description of what it is supposed to do. Your task is to analyze these descriptions to determine the dependencies between files and produce a new JSON object that lists the files with their dependencies.
+This is an example of input:
+
+{
+    "directories": [
+        "caro_game/interactive_user_interface/",
+        "caro_game/move-making/",
+        "caro_game/basic_ai/",
+        "caro_game/system_components/"
+    ],
+    "files": [
+        {
+            "path": "caro_game/interactive_user_interface/index.html",
+            "description": "The main HTML template for the user interface, including a header and footer with navigation links. Use template inheritance to enable extensibility in different sections of the game."
+        },
+        {
+            "path": "caro_game/move-making/create_move.py",
+            "description": "A Python file containing the implementation of the create move feature, which allows the player to select a piece and its coordinates. Include functions to validate user input and handle edge cases."
+        },
+        {
+            "path": "caro_game/move-making/piece_movement.py",
+            "description": "A Python file containing the implementation of the piece movement logic, including recursive depth-first search algorithms for evaluating moves and checking if they are valid according to the Cko rules."
+        },
+        {
+            "path": "caro_game/basic_ai/simple_ai.py",
+            "description": "A Python file containing a basic implementation of the AI algorithm using minimax with alpha-beta pruning. This will be used as a starting point for more advanced AIs in future iterations."
+        }
+    ]
+}
+
+From the descriptions, you need to identify which files depend on other files. For instance, if a file's description mentions using functions or classes from another file, then it depends on that file. You should list these dependencies in the output.
+The output should be a JSON object with the same structure, but instead of 'description', each file object should have 'depend_on', which is a list of paths to the files it depends on. This is an example of output:
+
+{
+    "directories": [
+        "caro_game/interactive_user_interface/",
+        "caro_game/move-making/",
+        "caro_game/basic_ai/",
+        "caro_game/system_components/"
+    ],
+    "files": [
+        {
+            "path": "caro_game/interactive_user_interface/index.html",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/move-making/create_move.py",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/move-making/piece_movement.py",
+            "depend_on": [
+                "caro_game/move-making/create_move.py"
+            ]
+        },
+        {
+            "path": "caro_game/basic_ai/simple_ai.py",
+            "depend_on": [
+                "caro_game/move-making/piece_movement.py"
+            ]
+        }
+    ]
+}:
+
+Note that the paths in 'depend_on' should be the full paths as they appear in the input.
+The dependencies indicate which files need to be developed before others. For example, if file A depends on file B, then file B should be developed first.
+Your task is to analyze the natural language descriptions to infer these dependencies. Look for mentions of other files, modules, or functionalities that are provided by other parts of the project.
+If a file's description does not indicate any dependencies, you can assume it has no dependencies, and its 'depend_on' list should be empty.
+If a description mentions a file that does not exist in the project, ignore that dependency.
+
+Please provide the output in JSON format, ensuring that it matches the structure of the input but with 'depend_on' lists instead of 'description' fields.
