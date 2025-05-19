@@ -1,0 +1,70 @@
+{
+    "directories": [
+        "player_inputs.py",
+        "config",
+        "requirements.txt",
+        "caro_game",
+        "templates",
+        "board_representation.py",
+        "static",
+        "game_logic.py",
+        "main.py"
+    ],
+    "files": [
+        {
+            "path": "caro_game/boards.py",
+            "description": "Represent the chess board as a nested list, implementing game logic and rules adherence. Define methods for moving pieces, checking wins, and drawing games.",
+            "depend_on": [
+                "caro_game/player_inputs.py"
+            ]
+        },
+        {
+            "path": "caro_game/game_logic.py",
+            "description": "Implement the game logic using Python classes, including movement, piece updates, and check/checkmate detection. Ensure adherence to standard chess rules.",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/player_inputs.py",
+            "description": "Handle player input and output using command-line arguments or keyboard events. Use a simple data structure (e.g., dictionaries) to store game state and update board representation accordingly.",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/game_over.html",
+            "description": "Display a game over screen after a move or draw. Include messages, images, or other visual effects to enhance the user experience.",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/create_player_page.html",
+            "description": "Contain a form for creating a new player with fields for name and password. Include validation and error handling mechanisms to ensure secure data storage.",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/login_page.html",
+            "description": "Display the login page with fields for username, password, and return URL. Handle form submission, authentication, and authorization logic.",
+            "depend_on": [
+                "create_player_page.html"
+            ]
+        },
+        {
+            "path": "caro_game/boards_representation.py",
+            "description": "Represent the board as a nested list, handling piece movements, checks, and draws. Implement a simple AI for opponent pieces, if needed.",
+            "depend_on": [
+                "caro_game/game_logic.py",
+                "board_representation.py"
+            ]
+        },
+        {
+            "path": "static/caroline-game.css",
+            "description": "CSS file for styling the application, including layout, typography, and form styles.",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/player_inputs_template.html",
+            "description": "Base HTML template with common layout, including header, footer, and navigation bar. Use template inheritance for extensibility. Handle player input validation and error handling.",
+            "depend_on": [
+                "caro_game/create_player_page.html",
+                "login_page.html"
+            ]
+        }
+    ]
+}

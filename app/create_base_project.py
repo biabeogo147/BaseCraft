@@ -1,30 +1,12 @@
 import os
 import json
 import shutil
-from app.config import app_config
-from app.model.model_query.base_ollama_query import query_ollama
+from app.utils.generating_workflow import generate_script
 
 
 def generate_project(requirement: str, root_dir: str):
     prompt = f"""I want to create a project satisfied these requirement: {requirement}."""
-
-    print("Generating a simple application idea...")
-    idea_result = query_ollama(prompt, "idea", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\idea_model_response.json", "w", encoding="utf-8") as f:
-        f.write(idea_result)
-
-    print("Generating a simple application structure...")
-    structure_result = query_ollama(idea_result, "structure", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\structure_model_response.json", "w", encoding="utf-8") as f:
-        f.write(structure_result)
-
-    print("Generating a simple application code script...")
-    programming_result = query_ollama(structure_result, "programming", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\programming_model_response.json", "w", encoding="utf-8") as f:
-        f.write(programming_result)
-    print("Done querying programming Ollama")
-    print("Response saved")
-
+    idea_result, structure_result, programming_result = generate_script(prompt, root_dir)
     if programming_result:
         try:
             structure_result = json.loads(structure_result)

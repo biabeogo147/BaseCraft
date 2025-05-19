@@ -4,10 +4,10 @@ from typing import Optional, List
 from pydantic.json_schema import model_json_schema
 
 from app.config.app_config import OLLAMA_HOST
-from app.model.model_output.pydantic.hierarchy_structure_schema import HierarchyDirectory
+from app.model.model_output.pydantic.hierarchy_structure_schema import DirectoryHierarchy
 from app.model.model_output.pydantic.idea_schema import Idea
 from app.model.model_output.pydantic.programming_schema import DirectoryStructure
-from app.model.model_output.pydantic.structure_schema import DirectoryDescription
+from app.model.model_output.pydantic.description_structure_schema import DirectoryDescription
 
 client = Client(
     host=OLLAMA_HOST,
@@ -38,7 +38,7 @@ def query_ollama(prompt: str, model_role: str, model_name: str) -> str:
     schema_mapping = {
         "idea": Idea.model_json_schema,
         "structure": DirectoryDescription.model_json_schema,
-        "hierarchy_structure": HierarchyDirectory.model_json_schema,
+        "hierarchy_structure": DirectoryHierarchy.model_json_schema,
         "programming": DirectoryStructure.model_json_schema,
     }
     model_json_schema = schema_mapping.get(model_role, lambda: None)()

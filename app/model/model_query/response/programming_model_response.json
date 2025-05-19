@@ -1,18 +1,46 @@
-{ "files": [
-    {
-        "path": ".caro_game/interactive_user_interface/index.html",
-        "content": "<html><head></head><body>{{ header }}<h1>Interactive User Interface</h1>{{ footer }}</body></html>"
-    },
-    {
-        "path": ".caro_game/move-making/create_move.py",
-        "content": "# Import necessary libraries\nfrom flask import request, jsonify\nfrom caro_game.model import Move\nfrom caro_game.utils import validate_input,\n    get_valid_moves_for_piece\n# Validate user input and handle edge cases\ndef create_move():\n    piece = request.form.get('piece')\n    coords = request.form.getlist('coords')\n    # Handle invalid inputs or missing pieces or coordinates"
-    },
-    {
-        "path": ".caro_game/move-making/piece_movement.py",
-        "content": "# Import necessary libraries\nfrom caro_game.model import Piece, Square\nfrom caro_game.utils import depth_first_search,\n    is_valid_move\n# Implement recursive depth-first search algorithm for evaluating moves and checking if they are valid according to Cko rules"
-    },
-    {
-        "path": ".caro_game/basic_ai/simple_ai.py",
-        "content": "# Import necessary libraries\nfrom caro_game.model import Piece, Square\nfrom caro_game.utils import minimax,\n    alpha_beta_pruning\n# Implement basic AI algorithm using minimax with alpha-beta pruning"
-    }
-] }
+{
+    "files": [
+        {
+            "path": "player_inputs.py",
+            "content": "from flask import Flask, request, render_template\nfrom flask_sqlalchemy import SQLAlchemy\napp = Flask(__name__)\ndb = SQLAlchemy(app)\n# Initialize models and relationships...\n@app.route('/', methods=['GET', 'POST'])\ndef index():\n    # Form handling and validation...\n    form = \\\\ Create a new player form...\n    return render_template('create_player_page.html', form=form)\n\n@app.route('/submit', methods=['POST'])\ndef submit_player():\n    data = request.form\n    name = data['name']\n    password = data['password']\n    # Save the new player to the database...\n    return redirect(url_for('index'))\n\nif __name__ == '__main__':\n    app.run(debug=True)\n"
+        },
+        {
+            "path": "boards.py",
+            "content": "from board_representation import BoardRepresentation\n# Import the necessary classes and functions...\nclass ChessBoard\n    def __init__(self, game):\n        self.game = game\n        # Initialize the board with a 2D list...\n    def get_pieces(self):\n        return self.game.pieces()\n    def move_piece(self, position, new_position):\n        # Update the piece on the board...\n        pass\n    def check_win(self, player):\n        # Check for winning conditions...\n        pass\n    def draw_game(self):\n        # Simulate a game end and return the result...\n        pass\n# Create an instance of ChessBoard...\nboard = ChessBoard(game_logic)\n# Test the board's methods...\nprint(board.get_pieces())\nprint(board.move_piece(0, 0))\n"
+        },
+        {
+            "path": "config.py",
+            "content": "# Configuration file for game settings...\nDEBUG = True\nSECRET_KEY = 'secret_key'\nALLOWED_CLIENTS = []\n"
+        },
+        {
+            "path": "requirements.txt",
+            "content": "\nflask==2.0.1\nsqlalchemy==1.4.33\nloguru==0.7.3"
+        },
+        {
+            "path": "caro_game/game_logic.py",
+            "content": "from player_inputs import ChessBoard, PlayerInputs\n# Import the necessary classes and functions...\nclass GameLogic:\n    def __init__(self, chess_board):\n        self.chess_board = chess_board\n        # Initialize game logic...\n    def check_win(self, player):\n        # Check for winning conditions...\n        pass\n    def draw_game(self):\n        # Simulate a game end and return the result...\n        pass\n# Create an instance of GameLogic...\ngame_logic = GameLogic(chess_board_representation)\n# Test the game logic's methods...\nprint(game_logic.check_win(player_inputs.player))\n"
+        },
+        {
+            "path": "static/caroline-game.css",
+            "content": "# CarolineGame CSS\n/* Add your styles here */"
+        },
+        {
+            "path": "caro_game/create_player_page.html",
+            "content": "<form action=\"/submit\" method=\"post\">\n    <label for=\"name\">Name:</label>\n    <input type=\"text\" id=\"name\" name=\"name\"\n    <br><br>\n    <label for=\"password\">Password:</label>\n    <input type=\"password\" id=\"password\" name=\"password\"\n    <br><br>\n    <input type=\"submit\" value=\"Create Player\">\n</form>"
+        },
+        {
+            "path": "caro_game/login_page.html",
+            "content": "<form action=\"/login\" method=\"post\">\n    <label for=\"username\">Username:</label>\n    <input type=\"text\" id=\"username\" name=\"username\"\n    <br><br>\n    <label for=\"password\">Password:</label>\n    <input type=\"password\" id=\"password\" name=\"password\"\n    <br><br>\n    <input type=\"submit\" value=\"Login\">\n</form>"
+        },
+        {
+            "path": "caro_game/boards_representation.py",
+            "content": "# Boards representation\n# Create a board represented as a 2D list...\nclass ChessBoardRepresentation:\n    def __init__(self, chess_board):\n        self.chess_board = chess_board\n        # Initialize the board's representation...\n    def get_pieces(self):\n        return self.chess_board.get_pieces()\n    def move_piece(self, position, new_position):\n        # Update the piece on the board...\n        pass\n"
+        },
+        {
+            "path": "player_inputs_template.html",
+            "content": "<html>\n<head>\n<title> CarolineGame </title>\n<link rel=\"stylesheet\" href=\"caroline-game.css\">\n</head>\n<body>\n<header>\n    <nav>\n        <!-- Add navigation bar here -->\n    </nav>\n    <main>\n        <!-- Main content here -->\n    </main>\n</body>\n</html>"
+        }
+    ]
+}
+
+           

@@ -1,28 +1,10 @@
 import os
-from app.config import app_config
-from app.model.model_query.base_ollama_query import query_ollama
-
+from app.utils.generating_workflow import generate_script
 
 if __name__ == "__main__":
     root_dir = "response"
     if not os.path.exists(root_dir):
         os.makedirs(root_dir)
 
-    # Test the query_idea_ollama function
     prompt = "Generate a simple Caro game using python."
-    print("Generating a simple application idea...")
-    idea_result = query_ollama(prompt, "idea", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\idea_model_response.json", "w", encoding="utf-8") as f:
-        f.write(idea_result)
-
-    # Test the query_structure_ollama function
-    print("Generating a simple application structure...")
-    structure_result = query_ollama(idea_result, "structure", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\structure_model_response.json", "w", encoding="utf-8") as f:
-        f.write(structure_result)
-
-    # Test the query_programming_ollama function
-    print("Generating a simple application code script...")
-    programming = query_ollama(structure_result, "programming", app_config.LLAMA_MODEL_NAME)
-    with open(f"{root_dir}\\programming_model_response.json", "w", encoding="utf-8") as f:
-        f.write(programming)
+    generate_script(prompt, root_dir)

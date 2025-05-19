@@ -1,0 +1,42 @@
+{
+    "directories": [
+        "caro_game",
+        "templates",
+        "static",
+        "config",
+        "requirements.txt",
+        "game_logic.py",
+        "board_representation.py",
+        "player_inputs.py",
+        "main.py"
+    ],
+    "files": [
+        {
+            "path": "caro_game/boards.py",
+            "depend_on": ["caro_game/player_inputs.py"]
+        },
+        {
+            "path": "caro_game/game_logic.py",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/boards_representation.py",
+            "depend_on": ["caro_game/game_logic.py", "board_representation.py"]
+        },
+        {
+            "path": "caro_game/player_inputs_template.html",
+            "depend_on": [
+                "caro_game/create_player_page.html",
+                "login_page.html"
+            ]
+        },
+        {
+            "path": "caro_game/create_player_page.html",
+            "depend_on": []
+        },
+        {
+            "path": "caro_game/login_page.html",
+            "depend_on": ["create_player_page.html"]
+        }
+    ]
+}

@@ -1,5 +1,14 @@
-{"project_name": "Simple Caro Game", "project_goal": "Create a basic implementation of the popular Chess-like game Caro-Kan Open (Cko) in Python.", "key_features": [
-"Interactive user interface",
-"Ability to make moves and update the board state",
-"Basic AI for the computer opponent"
-], "system_architecture": "[System -> Board -> Pieces -> Algorithm]", "suitable_technologies": ["Python", "Pygame"]}
+{"project_name": "Caro Game", "project_goal": "Create a simplified version of the classic chess game for two players.", "key_features": [
+  "Chess-like board",
+  "Player input and output",
+  "Game logic and rules adherence"
+], "system_architecture": "Board representation using nested lists, player inputs handled by command-line arguments or keyboard events, and game logic implemented using Python classes.",
+"suitable_technologies": [
+  "Python",
+  "Tkinter for GUI",
+  "random library for shuffling the board"
+]
+
+}
+
+ 
