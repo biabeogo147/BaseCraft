@@ -20,43 +20,43 @@ def get_edge(directoryCombined: DirectoryCombined) -> Tuple[List[List[int]], Lis
     return edges, count_in, num_node
 
 
-def topological_sort(edges: List[List[int]], count_in: List[int], num_node: int) -> List[int]:
+def topological_sort(edges: List[List[int]], count_in: List[int], num_node: int) -> List[Tuple[int, int]]:
     order = []
     for i in range(num_node):
         if count_in[i] == 0:
-            order.append(i)
+            order.append((i, 0))
 
     cnt = 0
     while cnt < len(order):
-        node = order[cnt]
+        node, node_order = order[cnt]
         for neighbor in edges[node]:
             count_in[neighbor] -= 1
             if count_in[neighbor] == 0:
-                order.append(neighbor)
+                order.append((neighbor, node_order + 1))
 
     return order
 
 
-def to_directory_order(directoryCombined: DirectoryCombined) -> str:
+def to_directory_order(directoryCombined: DirectoryCombined) -> DirectoryOrder:
     edges, count_in, num_node = get_edge(directoryCombined)
     topo_order = topological_sort(edges, count_in, num_node)
     file_order = [
         FileOrder(
-            order=order,
-            path=directoryCombined.files[i].path,
-            depend_on=directoryCombined.files[i].depend_on,
-            description=directoryCombined.files[i].description,
+            order=order[1],
+            path=directoryCombined.files[order[0]].path,
+            depend_on=directoryCombined.files[order[0]].depend_on,
+            description=directoryCombined.files[order[0]].description,
         )
-        for i, order in enumerate(topo_order)
+        for order in topo_order
     ]
     directory_order = DirectoryOrder(
         directories=directoryCombined.directories,
         files=[file for file in file_order]
     )
-    return directory_order.model_dump_json(exclude_none=True, indent=4)
+    return directory_order
 
 
-def combine_results(structure_result: str, hierarchy_result: str) -> str:
+def combine_results(structure_result: str, hierarchy_result: str) -> DirectoryCombined:
     json_structure = json.loads(structure_result)
     json_hierarchy = json.loads(hierarchy_result)
     hierarchy = DirectoryHierarchy(**json_hierarchy)
@@ -81,7 +81,7 @@ def combine_results(structure_result: str, hierarchy_result: str) -> str:
         files=combined_files
     )
 
-    return combined.model_dump_json(exclude_none=True, indent=4)
+    return combined
 
 
 def process_directories(structure_result: str) -> str:
@@ -104,7 +104,7 @@ def save(result: str, output_file: str) -> None:
     print(f"Response saved to {output_file}")
 
 
-def generate_script(prompt: str, root_dir: str) -> Tuple[str, str, str]:
+def generate_script(prompt: str, root_dir: str) -> Tuple[str, str, List[str]]:
     idea_result = base_query_ollama(
         prompt=prompt,
         model_role="idea",
@@ -128,16 +128,20 @@ def generate_script(prompt: str, root_dir: str) -> Tuple[str, str, str]:
     save(hierarchy_result, f"{root_dir}\\hierarchy_model_response.json")
 
     combine_result = combine_results(structure_result, hierarchy_result)
-    save(combine_result, f"{root_dir}\\combined_model_response.json")
+    save(combine_result.model_dump_json(exclude_none=True, indent=4), f"{root_dir}\\combined_model_response.json")
 
-    directory_order = to_directory_order(json.loads(combine_result))
-    save(directory_order, f"{root_dir}\\directory_order.json")
+    directory_order = to_directory_order(combine_result)
+    save(directory_order.model_dump_json(exclude_none=True, indent=4), f"{root_dir}\\directory_order.json")
 
-    programming_result = base_query_ollama(
-        prompt=combine_result,
-        model_role="programming",
-        model_name=app_config.LLAMA_MODEL_NAME,
-    )
-    save(programming_result, f"{root_dir}\\programming_model_response.json")
+    # Use async query for prompts have equal order
+    programming_results = []
+    for file in directory_order.files:
+        programming_result = base_query_ollama(
+            prompt=file.model_dump_json(exclude_none=True),
+            model_name=app_config.LLAMA_MODEL_NAME,
+            model_role="programming",
+        )
+        programming_results.append(programming_result)
+        save(programming_result, f"{root_dir}\\programming_model_response\\{os.path.basename(file.path)}.json")
 
-    return idea_result, structure_result, programming_result
+    return idea_result, structure_result, programming_results
