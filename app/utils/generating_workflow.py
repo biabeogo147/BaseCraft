@@ -105,7 +105,7 @@ def save(result: str, output_file: str) -> None:
     print(f"Response saved to {output_file}")
 
 
-def generate_script(prompt: str, root_json_files: str):
+def generate_scripts(prompt: str, root_json_files: str):
     print("Generating idea...")
     idea_result = base_query_ollama(
         prompt=prompt,

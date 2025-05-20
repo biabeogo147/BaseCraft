@@ -1,6 +1,6 @@
 import os
 import shutil
-from app.utils.generating_workflow import generate_script, generate_directories_and_files
+from app.utils.generating_workflow import generate_scripts, generate_directories_and_files
 
 
 def create_project(requirement: str, root_dir: str):
@@ -11,7 +11,7 @@ def create_project(requirement: str, root_dir: str):
 
     root_json_files = os.path.join(root_dir, "json_files")
     prompt = f"""I want to create a project satisfied these requirement: {requirement}."""
-    generate_script(prompt, root_json_files)
+    generate_scripts(prompt, root_json_files)
     generate_directories_and_files(root_json_files, root_dir)
 
 

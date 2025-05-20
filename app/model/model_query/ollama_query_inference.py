@@ -1,5 +1,5 @@
 import os
-from app.utils.generating_workflow import generate_script
+from app.utils.generating_workflow import generate_scripts
 
 if __name__ == "__main__":
     root_dir = "response"
@@ -7,4 +7,4 @@ if __name__ == "__main__":
         os.makedirs(root_dir)
 
     prompt = "Generate a simple Caro game using python."
-    generate_script(prompt, root_dir)
+    generate_scripts(prompt, root_dir)
