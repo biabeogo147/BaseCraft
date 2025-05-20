@@ -6,8 +6,8 @@ class FileCombined(BaseModel):
     description: str
     depend_on: List[str]
 
-class DirectoryCombined(BaseModel):
-    directories: List[str]
+
+class FileCombines(BaseModel):
     files: List[FileCombined]
 
 
@@ -18,6 +18,5 @@ class FileOrder(BaseModel):
     depend_on: List[str]
 
 
-class DirectoryOrder(BaseModel):
-    directories: List[str]
+class FileOrders(BaseModel):
     files: List[FileOrder]

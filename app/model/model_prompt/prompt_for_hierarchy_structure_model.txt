@@ -1,13 +1,6 @@
-You are given a JSON object that represents the structure of a software project, including directories and files. Each file has a path and a description of what it is supposed to do. Your task is to analyze these descriptions to determine the dependencies between files and produce a new JSON object that lists the files with their dependencies.
-This is an example of input:
+You are given a JSON object that represents the structure of a software project, including directories and files. This is an example of input:
 
 {
-    "directories": [
-        "caro_game/interactive_user_interface/",
-        "caro_game/move-making/",
-        "caro_game/basic_ai/",
-        "caro_game/system_components/"
-    ],
     "files": [
         {
             "path": "caro_game/interactive_user_interface/index.html",
@@ -28,16 +21,9 @@ This is an example of input:
     ]
 }
 
-From the descriptions, you need to identify which files depend on other files. For instance, if a file's description mentions using functions or classes from another file, then it depends on that file. You should list these dependencies in the output.
-The output should be a JSON object with the same structure, but instead of 'description', each file object should have 'depend_on', which is a list of paths to the files it depends on. This is an example of output:
+From the descriptions, you need to identify which files depend on other files. You should list these dependencies in the output. This is an example of output:
 
 {
-    "directories": [
-        "caro_game/interactive_user_interface/",
-        "caro_game/move-making/",
-        "caro_game/basic_ai/",
-        "caro_game/system_components/"
-    ],
     "files": [
         {
             "path": "caro_game/interactive_user_interface/index.html",
@@ -62,10 +48,7 @@ The output should be a JSON object with the same structure, but instead of 'desc
     ]
 }:
 
-Note that the paths in 'depend_on' should be the full paths as they appear in the input.
-The dependencies indicate which files need to be developed before others. For example, if file A depends on file B, then file B should be developed first.
-Your task is to analyze the natural language descriptions to infer these dependencies. Look for mentions of other files, modules, or functionalities that are provided by other parts of the project.
-If a file's description does not indicate any dependencies, you can assume it has no dependencies, and its 'depend_on' list should be empty.
-If a description mentions a file that does not exist in the project, ignore that dependency.
-
-Please provide the output in JSON format, ensuring that it matches the structure of the input but with 'depend_on' lists instead of 'description' fields.
+Note that the paths in 'depend_on' should be the full paths as they appear in the input, and only contains files from input. You cannot create another files.
+The dependencies indicate which files need to be developed before others. For example, if file A depends on file B, then file B should be developed first, not appear any cycle.
+Your task is to analyze the natural language descriptions to infer these dependencies.
+Please provide the output in JSON format.

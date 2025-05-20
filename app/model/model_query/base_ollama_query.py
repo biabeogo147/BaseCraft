@@ -3,8 +3,8 @@ from typing import List, Optional
 from app.config.app_config import OLLAMA_HOST
 from app.model.model_output.idea_schema import Idea
 from app.model.model_output.programming_schema import File
-from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
-from app.model.model_output.description_structure_schema import DirectoryDescription
+from app.model.model_output.hierarchy_structure_schema import FileRequirements
+from app.model.model_output.description_structure_schema import FileDescriptions
 
 client = Client(
     host=OLLAMA_HOST,
@@ -14,15 +14,15 @@ client = Client(
 def base_query_ollama(prompt: str, model_name: str, model_role: Optional[str] = None) -> str:
     try:
         try:
-            system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
+            system_prompt = open(f"model/model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
         except FileNotFoundError:
             print(f"Prompt file for {model_role} not found. Using default prompt.")
             system_prompt = ""
 
         schema_mapping = {
             "idea": Idea.model_json_schema,
-            "description_structure": DirectoryDescription.model_json_schema,
-            "hierarchy_structure": DirectoryHierarchy.model_json_schema,
+            "description_structure": FileDescriptions.model_json_schema,
+            "hierarchy_structure": FileRequirements.model_json_schema,
             "programming": File.model_json_schema,
         }
         model_json_schema = schema_mapping.get(model_role, lambda: None)()

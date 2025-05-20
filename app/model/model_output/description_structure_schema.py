@@ -5,6 +5,5 @@ class FileDescription(BaseModel):
     path: str
     description: str
 
-class DirectoryDescription(BaseModel):
-    directories: List[str]
+class FileDescriptions(BaseModel):
     files: List[FileDescription]

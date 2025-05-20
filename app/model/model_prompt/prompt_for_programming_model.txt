@@ -1,7 +1,6 @@
-You are given an input JSON that describes a directory structure for a Python project. The input JSON has the following structure:
+You are given an input JSON that describes a directory structure for a project. The input JSON has the following structure:
 
 {
-  "directories": ["dir1", "dir2", ...],
   "files": [
     {"path": "path/to/file1.py", "description": "Description of file1", "depend_on": ["path/to/dep1.py", "path/to/dep2.py", ...]},
     {"path": "path/to/file2.py", "description": "Description of file2", "depend_on": [...]},
@@ -10,7 +9,7 @@ You are given an input JSON that describes a directory structure for a Python pr
 }
 
 Your task is to generate code for each file based on its description and to include import statements for the files it depends on.
-Based on the description, generate appropriate Python code, such as function definitions, class definitions, or other relevant code. The code should be syntactically correct.
+Based on the description, generate appropriate code, such as function definitions, class definitions, or other relevant code. The code should be syntactically correct.
 Then, produce an output JSON with the following structure:
 
 {
@@ -20,25 +19,3 @@ Then, produce an output JSON with the following structure:
     ...
   ]
 }
-
-Make sure that the output JSON is correctly formatted and includes all the files specified in the input.
-For example, if the input JSON is:
-
-{
-  "directories": ["src", "src/utils"],
-  "files": [
-    {"path": "src/main.py", "description": "Main script that uses helper functions", "depend_on": ["src/utils/helper.py"]},
-    {"path": "src/utils/helper.py", "description": "Defines helper functions", "depend_on": []}
-  ]
-}
-
-Then, a possible output JSON could be:
-
-{
-  "files": [
-    {"path": "src/main.py", "content": "from src.utils.helper import *\n\ndef main():\n    print(helper_function())\n\nif __name__ == \"__main__\":\n    main()"},
-    {"path": "src/utils/helper.py", "content": "def helper_function():\n    return \"Hello\""}
-  ]
-}
-
-Note that the actual code generated may vary, but it should be based on the descriptions and include the appropriate import statements.

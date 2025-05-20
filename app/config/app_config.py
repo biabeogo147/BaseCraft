@@ -18,8 +18,8 @@ USER_PROJECT_COLLECTION = "user_project_collection"
 RENEW_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to renew
 INIT_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to initialize
 
+LLAMA_MODEL_NAME = "llama3.2:3b"
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"
-LLAMA_MODEL_NAME = "llama3.2:1b"
 MXBAI_EMBED_LARGE_MODEL_NAME = "mxbai-embed-large"
 
 OLLAMA_HOST = "http://localhost:11434"

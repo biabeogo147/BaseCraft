@@ -10,9 +10,14 @@ def create_project(requirement: str, root_dir: str):
     os.makedirs(root_dir)
 
     root_json_files = os.path.join(root_dir, "json_files")
+    os.makedirs(root_json_files)
+
+    root_source_code = os.path.join(root_dir, "source_code")
+    os.makedirs(root_source_code)
+
     prompt = f"""I want to create a project satisfied these requirement: {requirement}."""
     generate_scripts(prompt, root_json_files)
-    generate_directories_and_files(root_json_files, root_dir)
+    generate_directories_and_files(root_json_files, root_source_code)
 
 
 def main():

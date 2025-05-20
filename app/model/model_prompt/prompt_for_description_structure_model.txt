@@ -11,18 +11,11 @@ Your task is to provide a hierarchical directory structure using markdown format
 
 
 Ensure the structure is appropriate for the suggested technologies and follows best practices for the chosen framework or stack. Include all necessary files, such as configuration files, entry points, templates, and static resources ( straw requirements.txt for Python, package.json for Node.js).
-For code files (e.g., .py, .js), describe the main functions, classes, or modules they should contain. For configuration files, specify the settings or configurations they should include. For templates or static files, describe their structure and purpose.
-The descriptions should be clear, specific, and detailed enough to guide a Programming Model in generating functional code. Avoid vague statements and focus on concrete requirements. If the project idea includes specific features, ensure the file descriptions explain how those features are implemented.
-Consider scalability and maintainability when organizing the directory structure. If the project involves multiple components (e.g., backend and frontend), organize them appropriately.
+For code files (e.g., .py, .js), describe the main functions, classes, or modules they should contain.
+The descriptions should be clear, specific, and detailed enough to guide a Programming Model in generating functional code. If the project idea includes specific features, ensure the file descriptions explain how those features are implemented.
 
 Example Output:
-For a simple blog application using Flask, your output might look like this:
 {
-    "directories": [
-        "app",
-        "templates",
-        "static"
-    ],
     "files": [
         {
             "path": "app/init.py",
@@ -71,5 +64,4 @@ For a simple blog application using Flask, your output might look like this:
     ]
 }
 
-Directory must contain folders only, no files.
 Ensure your output is similarly detailed and tailored to the specific project idea provided. The descriptions should be technical and assume familiarity with the programming languages and frameworks involved.

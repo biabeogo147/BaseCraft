@@ -5,6 +5,5 @@ class FileRequirement(BaseModel):
     path: str
     depend_on: List[str]
 
-class DirectoryHierarchy(BaseModel):
-    directories: List[str]
+class FileRequirements(BaseModel):
     files: List[FileRequirement]

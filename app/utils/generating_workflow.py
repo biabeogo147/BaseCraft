@@ -4,20 +4,25 @@ from typing import Tuple, List
 from app.config import app_config
 from app.model.model_output.programming_schema import File
 from app.model.model_query.base_ollama_query import base_query_ollama
-from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
-from app.model.model_output.description_structure_schema import DirectoryDescription
-from app.model.model_output.combine_hierarchy_and_description_schema import FileCombined, DirectoryCombined, \
-    DirectoryOrder, FileOrder
+from app.model.model_output.hierarchy_structure_schema import FileRequirements
+from app.model.model_output.description_structure_schema import FileDescriptions
+from app.model.model_output.combine_hierarchy_and_description_schema import FileCombined, FileCombines, \
+    FileOrders, FileOrder
 
 
-def get_edge(directoryCombined: DirectoryCombined) -> Tuple[List[List[int]], List[int], int]:
-    edges = []
+def get_edge(directoryCombined: FileCombines) -> Tuple[List[List[int]], List[int], int]:
     files = directoryCombined.files
+    file2index = {file.path: i for i, file in enumerate(files)}
+
     num_node = len(files)
     count_in = [0] * num_node
+    edges = [[] for _ in range(num_node)]
     for i, file in enumerate(files):
-        for j, depend_file in file.depend_on:
-            edges[j].append(i)
+        for depend_file in file.depend_on:
+            index = file2index.get(depend_file)
+            if index:
+                edges[index].append(i)
+                count_in[i] += 1
     return edges, count_in, num_node
 
 
@@ -30,6 +35,7 @@ def topological_sort(edges: List[List[int]], count_in: List[int], num_node: int)
     cnt = 0
     while cnt < len(order):
         node, node_order = order[cnt]
+        cnt += 1
         for neighbor in edges[node]:
             count_in[neighbor] -= 1
             if count_in[neighbor] == 0:
@@ -38,7 +44,7 @@ def topological_sort(edges: List[List[int]], count_in: List[int], num_node: int)
     return order
 
 
-def to_directory_order(directoryCombined: DirectoryCombined) -> DirectoryOrder:
+def to_directory_order(directoryCombined: FileCombines) -> FileOrders:
     edges, count_in, num_node = get_edge(directoryCombined)
     topo_order = topological_sort(edges, count_in, num_node)
     file_order = [
@@ -50,51 +56,66 @@ def to_directory_order(directoryCombined: DirectoryCombined) -> DirectoryOrder:
         )
         for order in topo_order
     ]
-    directory_order = DirectoryOrder(
-        directories=directoryCombined.directories,
-        files=[file for file in file_order]
-    )
-    return directory_order
+    file_orders = FileOrders(files=[file for file in file_order])
+    return file_orders
 
 
-def combine_results(structure_result: str, hierarchy_result: str) -> DirectoryCombined:
+def combine_results(structure_result: str, hierarchy_result: str) -> FileCombines:
     json_structure = json.loads(structure_result)
     json_hierarchy = json.loads(hierarchy_result)
-    hierarchy = DirectoryHierarchy(**json_hierarchy)
-    structure = DirectoryDescription(**json_structure)
-    combined_dirs = list(set(structure.directories + hierarchy.directories))
+    hierarchy = FileRequirements(**json_hierarchy)
+    description = FileDescriptions(**json_structure)
 
     combined_files = []
     hierarchy_files = {f.path: f.depend_on for f in hierarchy.files}
-    structure_files = {f.path: f.description for f in structure.files}
-    all_paths = set(structure_files.keys()) | set(hierarchy_files.keys())
+    description_files = {f.path: f.description for f in description.files}
+    all_paths = description_files.keys()
 
     for path in all_paths:
         file_combined = FileCombined(
             path=path,
-            description=structure_files.get(path, ""),
-            depend_on=hierarchy_files.get(path, [])
+            depend_on=hierarchy_files.get(path, []),
+            description=description_files.get(path, ""),
         )
         combined_files.append(file_combined)
 
-    combined = DirectoryCombined(
-        directories=combined_dirs,
-        files=combined_files
-    )
+    combined = FileCombines(files=combined_files)
 
     return combined
 
 
-def process_directories(structure_result: str) -> str:
-    json_structure = json.loads(structure_result)
-    structure = DirectoryDescription(**json_structure)
+def is_file(path) -> bool:
+    normalized_path = os.path.normpath(path)
+    name = os.path.basename(normalized_path)
+    _, extension = os.path.splitext(name)
+    if extension:
+        return True
+    return False
 
-    new_directories = []
-    directories = structure.directories
-    for directory in directories:
-        if os.path.isdir(directory):
-            new_directories.append(directory)
-    structure.directories = new_directories
+
+def process_depend_on(hierarchy_result: str) -> str:
+    json_hierarchy = json.loads(hierarchy_result)
+    hierarchy = FileRequirements(**json_hierarchy)
+
+    files = hierarchy.files
+    for i, file in enumerate(files):
+        for depend_file in file.depend_on:
+            if not is_file(depend_file) and depend_file != file.path:
+                files[i].depend_on.remove(depend_file)
+
+    return hierarchy.model_dump_json(exclude_none=True, indent=4)
+
+
+def process_file_path(structure_result: str) -> str:
+    json_structure = json.loads(structure_result)
+    structure = FileDescriptions(**json_structure)
+
+    new_files = []
+    files = structure.files
+    for file in files:
+        if is_file(file.path):
+            new_files.append(file)
+    structure.files = new_files
 
     return structure.model_dump_json(exclude_none=True, indent=4)
 
@@ -120,7 +141,7 @@ def generate_scripts(prompt: str, root_json_files: str):
         model_role="description_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
     )
-    description_structure_result = process_directories(description_structure_result)
+    description_structure_result = process_file_path(description_structure_result)
     save(description_structure_result, f"{root_json_files}\\description_structure_model_response.json")
 
     print(f"Generating hierarchy structure...")
@@ -129,6 +150,7 @@ def generate_scripts(prompt: str, root_json_files: str):
         model_role="hierarchy_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
     )
+    hierarchy_structure_result = process_depend_on(hierarchy_structure_result)
     save(hierarchy_structure_result, f"{root_json_files}\\hierarchy_structure_model_response.json")
 
     print(f"Generating combined structure...")
@@ -141,6 +163,8 @@ def generate_scripts(prompt: str, root_json_files: str):
 
     # Use async query for prompts have equal order
     print(f"Generating source codes...")
+    root_programming_json = os.path.join(root_json_files, "programming_model_response")
+    os.makedirs(root_programming_json)
     cnt = 0
     for file in directory_order.files:
         programming_result = base_query_ollama(
@@ -148,7 +172,7 @@ def generate_scripts(prompt: str, root_json_files: str):
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",
         )
-        save(programming_result, f"{root_json_files}\\programming_model_response\\{os.path.basename(file.path)}.json")
+        save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
         cnt += 1
     print(f"Generated {cnt} files.")
 
@@ -156,22 +180,14 @@ def generate_scripts(prompt: str, root_json_files: str):
 def generate_directories_and_files(root_json_files: str, root_dir: str) -> None:
     print("Generating directories and files...")
 
-    with open(f"{root_json_files}\\description_structure_response.json", "w", encoding="utf-8") as f:
-        description_structure_result = DirectoryDescription(**json.loads(f.read()))
+    for file in os.listdir(f"{root_json_files}\\programming_model_response"):
+        with open(f"{root_json_files}\\programming_model_response\\{file}", "r", encoding="utf-8") as f:
+            programming_result = File(**json.loads(f.read()))
 
-    if description_structure_result:
-        for directory in description_structure_result.directories:
-            os.makedirs(os.path.join(root_dir, directory), exist_ok=True)
-
-        for file in os.listdir(f"{root_json_files}\\programming_model_response"):
-            programming_result = None
-            with open(f"{root_json_files}\\programming_model_response\\{file}", "r", encoding="utf-8") as f:
-                programming_result = File(**json.loads(f.read()))
-
-            if programming_result:
-                file_path = os.path.join(root_dir, programming_result.path)
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(programming_result.content)
+        if programming_result:
+            file_path = os.path.join(root_dir, programming_result.path)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(programming_result.content)
 
     print("Directories and files generated successfully.")
