@@ -43,8 +43,6 @@ if __name__ == "__main__":
 
     result = base_query_ollama(
         prompt=USER_PROMPT,
-        model_json_schema=None,
-        system_prompt=SYSTEM_PROMPT,
         model_name=app_config.LLAMA_MODEL_NAME,
     )
 

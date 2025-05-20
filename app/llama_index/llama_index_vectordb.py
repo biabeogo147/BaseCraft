@@ -6,14 +6,12 @@ from app.config.app_config import RAG_GITHUB_COLLECTION
 from llama_index.core.ingestion import IngestionPipeline, IngestionCache
 from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store, get_llama_index_cache
 
-cache = get_llama_index_cache()
-embedding = get_llama_index_embedding()
-vector_store = get_llama_index_vector_store()
 
-
-def insert_nodes_to_vector_store(documents: List[Document]) -> Sequence[BaseNode]:
+def insert_nodes_to_vector_store_from_documents(collection_name: str, documents: List[Document]) -> Sequence[BaseNode]:
     """Create nodes from documents."""
     try:
+        embedding = get_llama_index_embedding()
+        vector_store = get_llama_index_vector_store(collection_name)
         pipeline = IngestionPipeline(
             transformations=[
                 embedding,
@@ -30,6 +28,8 @@ def insert_nodes_to_vector_store(documents: List[Document]) -> Sequence[BaseNode
 def insert_nodes_to_cache_from_documents(documents: List[Document]) -> Sequence[BaseNode]:
     """Create nodes from documents."""
     try:
+        cache = get_llama_index_cache()
+        embedding = get_llama_index_embedding()
         pipeline = IngestionPipeline(
             transformations=[
                 embedding,
@@ -49,6 +49,7 @@ def insert_nodes_to_cache_from_documents(documents: List[Document]) -> Sequence[
 def insert_nodes_to_cache(nodes: Sequence[BaseNode]) -> None:
     """Insert nodes to cache."""
     try:
+        cache = get_llama_index_cache()
         cache.put_all(
             kv_pairs=[
                 (node.get_doc_id(), node.to_dict())
@@ -61,8 +62,10 @@ def insert_nodes_to_cache(nodes: Sequence[BaseNode]) -> None:
         raise
 
 
-def query_index(query_text: str, top_k: int, llm: Optional[LLM] = None) -> Tuple[List[dict], str]:
+def query_index(query_text: str, top_k: int, collection_name: str, llm: Optional[LLM] = None) -> Tuple[List[dict], str]:
     try:
+        embedding = get_llama_index_embedding()
+        vector_store = get_llama_index_vector_store(collection_name)
         index = VectorStoreIndex.from_vector_store(
             vector_store=vector_store,
             embed_model=embedding,

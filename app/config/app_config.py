@@ -8,13 +8,15 @@ VECTORDB_NAME = "milvus"
 RENEW_DB = False
 RENEW_CACHE = True
 IS_METADATA = True
-RENEW_COLLECTION = True
 INSERT_RANDOM_DATA = False
 DEFAULT_TEXT_FIELD = "text"
 DEFAULT_METRIC_TYPE = "COSINE"
 GITHUB_DB = "github_knowledge_base"
 DEFAULT_EMBEDDING_FIELD = "embedding"
 RAG_GITHUB_COLLECTION = "rag_github_collection"
+USER_PROJECT_COLLECTION = "user_project_collection"
+RENEW_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to renew
+INIT_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to initialize
 
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"
 LLAMA_MODEL_NAME = "llama3.2:1b"

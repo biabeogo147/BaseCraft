@@ -50,7 +50,7 @@ def get_llama_index_embedding() -> BaseEmbedding:
     return BaseEmbedding()
 
 
-def get_llama_index_vector_store() -> BasePydanticVectorStore:
+def get_llama_index_vector_store(collection_name: str) -> BasePydanticVectorStore:
     if VECTORDB_NAME == "milvus":
         vector_store = MilvusVectorStore(
             uri=MILVUS_HOST,
@@ -59,12 +59,12 @@ def get_llama_index_vector_store() -> BasePydanticVectorStore:
             dim=EMBED_VECTOR_DIM,
             similarity_metric="COSINE",
             text_key=DEFAULT_TEXT_FIELD,
+            collection_name=collection_name,
             embedding_key=DEFAULT_EMBEDDING_FIELD,
-            collection_name=RAG_GITHUB_COLLECTION,
             token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
         )
         if INSERT_RANDOM_DATA:
-            insert_random_data(LLAMA_INDEX_DB, RAG_GITHUB_COLLECTION)
+            insert_random_data(LLAMA_INDEX_DB, collection_name)
         return vector_store
     return BasePydanticVectorStore(stores_text=True)
 

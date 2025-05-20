@@ -3,8 +3,9 @@ from typing import List
 from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, \
-    EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTION, \
-    INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE
+    EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTIONS, \
+    INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE, \
+    INIT_COLLECTIONS
 from app.utils.embedding import emb_text
 
 client = MilvusClient(
@@ -17,28 +18,26 @@ client = MilvusClient(
 def setup_vector_store():
     if RENEW_DB:
         drop_db(GITHUB_DB)
-    init_db(GITHUB_DB, RAG_GITHUB_COLLECTION)
-    if RENEW_COLLECTION:
-        drop_collection(RAG_GITHUB_COLLECTION)
-        create_collection(RAG_GITHUB_COLLECTION)
+    init_db(GITHUB_DB)
     if INSERT_RANDOM_DATA:
         insert_random_data(GITHUB_DB, RAG_GITHUB_COLLECTION)
 
 
-def init_db(db_name: str, collection_name: str):
+def init_db(db_name: str):
     """Initialize the database and index with LlamaIndex."""
     try:
         databases = client.list_databases()
         if db_name not in databases:
             print(f"Initializing database {db_name}...")
             create_db(db_name)
-            create_collection(collection_name)
+            for collection_name in INIT_COLLECTIONS:
+                create_collection(collection_name)
         else:
             client.use_database(db_name=db_name)
             print(f"Using existing database {db_name}.")
-            if RENEW_COLLECTION:
-                drop_collection(RAG_GITHUB_COLLECTION)
-                create_collection(RAG_GITHUB_COLLECTION)
+            for collection_name in RENEW_COLLECTIONS:
+                drop_collection(collection_name)
+                create_collection(collection_name)
     except Exception as e:
         print(f"Failed to initialize database: {e}")
         raise
@@ -79,7 +78,7 @@ def create_db(db_name: str):
     print(f"Database {db_name} created and set as current database.")
 
 
-def create_github_schema() -> CollectionSchema:
+def create_schema() -> CollectionSchema:
     schema = MilvusClient.create_schema(
         auto_id=True,
         enable_dynamic_field=IS_METADATA,
@@ -111,7 +110,7 @@ def create_github_schema() -> CollectionSchema:
     return schema
 
 
-def create_github_index_params() -> IndexParams:
+def create_index_params() -> IndexParams:
     index_params = client.prepare_index_params()
     index_params.add_index(
         field_name="id",
@@ -127,12 +126,11 @@ def create_github_index_params() -> IndexParams:
 
 
 def create_collection(collection_name: str):
-    schema = create_github_schema()
-    index_params = create_github_index_params()
+    schema = create_schema()
+    index_params = create_index_params()
     client.create_collection(
         collection_name=collection_name,
         index_params=index_params,
-        overwrite=True,
         schema=schema,
     )
     print(f"Collection {collection_name} created.")

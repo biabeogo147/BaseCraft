@@ -1,5 +1,5 @@
-from typing import List
 from ollama import Client
+from typing import List, Optional
 from app.config.app_config import OLLAMA_HOST
 from app.model.model_output.idea_schema import Idea
 from app.model.model_output.programming_schema import File
@@ -11,9 +11,14 @@ client = Client(
 )
 
 
-def base_query_ollama(prompt: str, model_role: str, model_name: str) -> str:
+def base_query_ollama(prompt: str, model_name: str, model_role: Optional[str] = None) -> str:
     try:
-        system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
+        try:
+            system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
+        except FileNotFoundError:
+            print(f"Prompt file for {model_role} not found. Using default prompt.")
+            system_prompt = ""
+
         schema_mapping = {
             "idea": Idea.model_json_schema,
             "description_structure": DirectoryDescription.model_json_schema,
