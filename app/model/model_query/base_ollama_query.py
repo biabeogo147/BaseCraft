@@ -1,10 +1,9 @@
-from ollama import Client
 from typing import List
-
+from ollama import Client
 from app.config.app_config import OLLAMA_HOST
-from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
 from app.model.model_output.idea_schema import Idea
-from app.model.model_output.programming_schema import DirectoryStructure
+from app.model.model_output.programming_schema import File
+from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
 from app.model.model_output.description_structure_schema import DirectoryDescription
 
 client = Client(
@@ -17,9 +16,9 @@ def base_query_ollama(prompt: str, model_role: str, model_name: str) -> str:
         system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
         schema_mapping = {
             "idea": Idea.model_json_schema,
-            "structure": DirectoryDescription.model_json_schema,
+            "description_structure": DirectoryDescription.model_json_schema,
             "hierarchy_structure": DirectoryHierarchy.model_json_schema,
-            "programming": DirectoryStructure.model_json_schema,
+            "programming": File.model_json_schema,
         }
         model_json_schema = schema_mapping.get(model_role, lambda: None)()
         response = client.generate(

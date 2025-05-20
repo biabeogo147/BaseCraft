@@ -2,6 +2,7 @@ import os
 import json
 from typing import Tuple, List
 from app.config import app_config
+from app.model.model_output.programming_schema import File
 from app.model.model_query.base_ollama_query import base_query_ollama
 from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
 from app.model.model_output.description_structure_schema import DirectoryDescription
@@ -104,44 +105,73 @@ def save(result: str, output_file: str) -> None:
     print(f"Response saved to {output_file}")
 
 
-def generate_script(prompt: str, root_dir: str) -> Tuple[str, str, List[str]]:
+def generate_script(prompt: str, root_json_files: str):
+    print("Generating idea...")
     idea_result = base_query_ollama(
         prompt=prompt,
         model_role="idea",
         model_name=app_config.LLAMA_MODEL_NAME,
     )
-    save(idea_result, f"{root_dir}\\idea_model_response.json")
+    save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
-    structure_result = base_query_ollama(
+    print(f"Generating description structure...")
+    description_structure_result = base_query_ollama(
         prompt=idea_result,
-        model_role="structure",
+        model_role="description_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
     )
-    structure_result = process_directories(structure_result)
-    save(structure_result, f"{root_dir}\\structure_model_response.json")
+    description_structure_result = process_directories(description_structure_result)
+    save(description_structure_result, f"{root_json_files}\\description_structure_model_response.json")
 
-    hierarchy_result = base_query_ollama(
-        prompt=structure_result,
+    print(f"Generating hierarchy structure...")
+    hierarchy_structure_result = base_query_ollama(
+        prompt=description_structure_result,
         model_role="hierarchy_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
     )
-    save(hierarchy_result, f"{root_dir}\\hierarchy_model_response.json")
+    save(hierarchy_structure_result, f"{root_json_files}\\hierarchy_structure_model_response.json")
 
-    combine_result = combine_results(structure_result, hierarchy_result)
-    save(combine_result.model_dump_json(exclude_none=True, indent=4), f"{root_dir}\\combined_model_response.json")
+    print(f"Generating combined structure...")
+    combine_result = combine_results(description_structure_result, hierarchy_structure_result)
+    save(combine_result.model_dump_json(exclude_none=True, indent=4), f"{root_json_files}\\combined_model_response.json")
 
+    print(f"Generating order...")
     directory_order = to_directory_order(combine_result)
-    save(directory_order.model_dump_json(exclude_none=True, indent=4), f"{root_dir}\\directory_order.json")
+    save(directory_order.model_dump_json(exclude_none=True, indent=4), f"{root_json_files}\\directory_order.json")
 
     # Use async query for prompts have equal order
-    programming_results = []
+    print(f"Generating source codes...")
+    cnt = 0
     for file in directory_order.files:
         programming_result = base_query_ollama(
             prompt=file.model_dump_json(exclude_none=True),
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",
         )
-        programming_results.append(programming_result)
-        save(programming_result, f"{root_dir}\\programming_model_response\\{os.path.basename(file.path)}.json")
+        save(programming_result, f"{root_json_files}\\programming_model_response\\{os.path.basename(file.path)}.json")
+        cnt += 1
+    print(f"Generated {cnt} files.")
 
-    return idea_result, structure_result, programming_results
+
+def generate_directories_and_files(root_json_files: str, root_dir: str) -> None:
+    print("Generating directories and files...")
+
+    with open(f"{root_json_files}\\description_structure_response.json", "w", encoding="utf-8") as f:
+        description_structure_result = DirectoryDescription(**json.loads(f.read()))
+
+    if description_structure_result:
+        for directory in description_structure_result.directories:
+            os.makedirs(os.path.join(root_dir, directory), exist_ok=True)
+
+        for file in os.listdir(f"{root_json_files}\\programming_model_response"):
+            programming_result = None
+            with open(f"{root_json_files}\\programming_model_response\\{file}", "r", encoding="utf-8") as f:
+                programming_result = File(**json.loads(f.read()))
+
+            if programming_result:
+                file_path = os.path.join(root_dir, programming_result.path)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(programming_result.content)
+
+    print("Directories and files generated successfully.")
