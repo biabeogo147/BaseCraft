@@ -1,21 +1,27 @@
 from ollama import Client
-from typing import Optional, List
-
-from pydantic.json_schema import model_json_schema
+from typing import List
 
 from app.config.app_config import OLLAMA_HOST
-from app.model.model_output.pydantic.hierarchy_structure_schema import DirectoryHierarchy
-from app.model.model_output.pydantic.idea_schema import Idea
-from app.model.model_output.pydantic.programming_schema import DirectoryStructure
-from app.model.model_output.pydantic.description_structure_schema import DirectoryDescription
+from app.model.model_output.hierarchy_structure_schema import DirectoryHierarchy
+from app.model.model_output.idea_schema import Idea
+from app.model.model_output.programming_schema import DirectoryStructure
+from app.model.model_output.description_structure_schema import DirectoryDescription
 
 client = Client(
     host=OLLAMA_HOST,
 )
 
 
-def base_query_ollama(prompt: str, model_name: str, system_prompt: str, model_json_schema: Optional[dict]) -> str:
+def base_query_ollama(prompt: str, model_role: str, model_name: str) -> str:
     try:
+        system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
+        schema_mapping = {
+            "idea": Idea.model_json_schema,
+            "structure": DirectoryDescription.model_json_schema,
+            "hierarchy_structure": DirectoryHierarchy.model_json_schema,
+            "programming": DirectoryStructure.model_json_schema,
+        }
+        model_json_schema = schema_mapping.get(model_role, lambda: None)()
         response = client.generate(
             prompt=prompt,
             model=model_name,
@@ -31,24 +37,6 @@ def base_query_ollama(prompt: str, model_name: str, system_prompt: str, model_js
     except Exception as e:
         print(f"Error connecting to Ollama: {e}")
         return ""
-
-
-def query_ollama(prompt: str, model_role: str, model_name: str) -> str:
-    system_prompt = open(f"../model_prompt/prompt_for_{model_role}_model.txt", "r", encoding="utf-8").read()
-    schema_mapping = {
-        "idea": Idea.model_json_schema,
-        "structure": DirectoryDescription.model_json_schema,
-        "hierarchy_structure": DirectoryHierarchy.model_json_schema,
-        "programming": DirectoryStructure.model_json_schema,
-    }
-    model_json_schema = schema_mapping.get(model_role, lambda: None)()
-    result = base_query_ollama(
-        prompt=prompt,
-        model_name=model_name,
-        system_prompt=system_prompt,
-        model_json_schema=model_json_schema,
-    )
-    return result
 
 
 def embedding_ollama(text: List[str], model_name: str) -> List[List[float]]:
