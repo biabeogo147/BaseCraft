@@ -31,53 +31,65 @@ LANGUAGE_LLAMA_INDEX = {
     "Shell Script": Language.POWERSHELL,
 }
 
+_model = {}
+_cache = {}
+_embedding = {}
+_vector_store = {}
 
-def get_llama_index_model() -> LLM:
+
+def get_llama_index_model(model_name: str) -> LLM:
     if IS_OLLAMA:
-        return Ollama(
-            model=LLAMA_MODEL_NAME,
-            base_url=OLLAMA_HOST,
-        )
+        if _model.get("OLLAMA").get(model_name) is None:
+            _model["OLLAMA"][model_name] = Ollama(
+                model=model_name,
+                base_url=OLLAMA_HOST,
+            )
+        return _model[model_name]
     return LLM()
 
 
-def get_llama_index_embedding() -> BaseEmbedding:
+def get_llama_index_embedding(embedding_name: str) -> BaseEmbedding:
     if IS_OLLAMA:
-        return OllamaEmbedding(
-            model_name=MXBAI_EMBED_LARGE_MODEL_NAME,
-            base_url=OLLAMA_HOST,
-        )
+        if _embedding.get("OLLAMA").get(embedding_name) is None:
+            _embedding["OLLAMA"][embedding_name] = OllamaEmbedding(
+                model_name=embedding_name,
+                base_url=OLLAMA_HOST,
+            )
+        return _embedding["OLLAMA"][embedding_name]
     return BaseEmbedding()
 
 
 def get_llama_index_vector_store(collection_name: str) -> BasePydanticVectorStore:
     if VECTORDB_NAME == "milvus":
-        vector_store = MilvusVectorStore(
-            uri=MILVUS_HOST,
-            overwrite=RENEW_DB,
-            enable_sparse=False,
-            dim=EMBED_VECTOR_DIM,
-            similarity_metric="COSINE",
-            text_key=DEFAULT_TEXT_FIELD,
-            collection_name=collection_name,
-            embedding_key=DEFAULT_EMBEDDING_FIELD,
-            token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
-        )
-        if INSERT_RANDOM_DATA:
-            insert_random_data(LLAMA_INDEX_DB, collection_name)
-        return vector_store
+        if _vector_store.get(VECTORDB_NAME).get(collection_name) is None:
+            _vector_store[VECTORDB_NAME][collection_name] = MilvusVectorStore(
+                uri=MILVUS_HOST,
+                overwrite=RENEW_DB,
+                enable_sparse=False,
+                dim=EMBED_VECTOR_DIM,
+                similarity_metric="COSINE",
+                text_key=DEFAULT_TEXT_FIELD,
+                collection_name=collection_name,
+                embedding_key=DEFAULT_EMBEDDING_FIELD,
+                token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
+            )
+            if INSERT_RANDOM_DATA:
+                insert_random_data(LLAMA_INDEX_DB, collection_name)
+        return _vector_store[VECTORDB_NAME][collection_name]
     return BasePydanticVectorStore(stores_text=True)
 
 
-def get_llama_index_cache() -> BaseKVStore:
+def get_llama_index_cache(db_number: int) -> BaseKVStore:
     if CACHE_NAME == "redis":
-        redis_client = Redis(
-            host=REDIS_HOST,
-            port=REDIS_PORT,
-            db=REDIS_GITHUB_RAG_DB,
-            password=REDIS_PASSWORD,
-        )
-        if RENEW_CACHE:
-            redis_client.flushdb()
-        return RedisCache.from_redis_client(redis_client)
+        if _cache.get(CACHE_NAME).get(db_number) is None:
+            redis_client = Redis(
+                db=db_number,
+                host=REDIS_HOST,
+                port=REDIS_PORT,
+                password=REDIS_PASSWORD,
+            )
+            _cache[CACHE_NAME][db_number] = RedisCache.from_redis_client(redis_client)
+            if RENEW_CACHE:
+                redis_client.flushdb()
+        return _cache[CACHE_NAME][db_number]
     return BaseKVStore()
