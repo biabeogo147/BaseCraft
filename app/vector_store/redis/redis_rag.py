@@ -4,7 +4,7 @@ from app.utils.embedding import emb_text
 from app.config.app_config import INSERT_RANDOM_DATA
 from app.vector_store.redis.redis_db import setup_cache
 
-index = setup_cache()
+indexes = setup_cache()
 
 
 def insert_sample():
@@ -29,7 +29,7 @@ def insert_sample():
         "path/to/file5.c",
     ]
 
-    index.load(
+    indexes[0].load(
         data=[{
                 "id": f"{repo_name[i]}:{path[i]}:{chunk_index[i]}",
                 "doc_id": f"{repo_name[i]}:{path[i]}",
@@ -63,11 +63,12 @@ def query_sample():
     )
 
     # Work only on Hash storage type
-    results = index.query(query=query)
+    results = [index.query(query=query) for index in indexes]
 
     print("Query results:")
     for result in results:
-        print(result)
+        for item in result:
+            print(f"ID: {item['id']}, Distance: {item['vector_distance']}, Text: {item['text']}")
 
 
 if __name__ == "__main__":

@@ -1,33 +1,52 @@
+from typing import Dict
 from redis import Redis
 from redisvl.index import SearchIndex
 from redisvl.schema import IndexSchema
-from app.config.app_config import EMBED_VECTOR_DIM, RAG_GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, RENEW_CACHE
+from app.config.app_config import EMBED_VECTOR_DIM, RAG_GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, \
+    RENEW_CACHE, REDIS_GITHUB_DB, REDIS_USER_PROJECT_DB, USER_PROJECT_COLLECTION, DEFAULT_METRIC_TYPE
 
-redis = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
-print("Connected to Redis: ", redis.ping())
+_index = {}
+_redis = {}
 
 
-def setup_cache():
+def setup_cache() -> Dict[int, SearchIndex]:
     """
-    Set up the vector store for Redis.
+    Set up the SearchIndex for Redis.
     """
-    if RENEW_CACHE:
-        redis.flushdb()
-        print("Redis cache flushed.")
-    schema = create_redis_github_schema()
-    index = create_redis_index(schema)
-    print("Vector store setup complete.")
-    return index
+    global _redis
+    if len(_redis) == 0:
+        schemas = [
+            (REDIS_GITHUB_DB, create_redis_github_schema()),
+            (REDIS_USER_PROJECT_DB, create_redis_user_project_schema())
+        ]
+        for schema in schemas:
+            _redis[schema[0]] = Redis(
+                db=schema[0],
+                host=REDIS_HOST,
+                port=REDIS_PORT,
+                password=REDIS_PASSWORD
+            )
+            print(f"Redis {schema[0]} connection established: {_redis[schema[0]].ping()}")
+            if RENEW_CACHE:
+                _redis[schema[0]].flushdb()
+                print(f"Redis cache {schema[0]} flushed.")
+            _index[schema[0]] = create_redis_index(schema[1], db_number=schema[0])
+            print(f"Redis search index {schema[0]} created.")
+        print("Vector store setup complete.")
+        return _index
+    else:
+        print("Redis connection already established.")
+        return _index
 
 
-def create_redis_index(schema: IndexSchema) -> SearchIndex:
+def create_redis_index(schema: IndexSchema, db_number: int) -> SearchIndex:
     """
     Create a Redis index with the given schema.
     """
     index = SearchIndex(
         schema=schema,
-        redis_client=redis,
         validate_on_load=True,
+        redis_client=_redis[db_number],
     )
     index.create(overwrite=True)
     return index
@@ -64,12 +83,72 @@ def create_redis_github_schema() -> IndexSchema:
                     "algorithm": "flat",
                     "datatype": "float32",
                     "dims": EMBED_VECTOR_DIM,
-                    "distance_metric": "cosine",
+                    "distance_metric": DEFAULT_METRIC_TYPE.lower(),
                 }
             },
             # Metadata
             {
                 "name": "repo_name",
+                "type": "tag"
+            },
+            {
+                "name": "language",
+                "type": "tag"
+            },
+            {
+                "name": "chunk_index",
+                "type": "tag"
+            },
+            {
+                "name": "path",
+                "type": "tag"
+            },
+            {
+                "name": "type",
+                "type": "tag"
+            }
+        ]
+    })
+    return schema
+
+
+def create_redis_user_project_schema() -> IndexSchema:
+    """
+    Create a Redis schema for the user project knowledge base.
+    """
+    schema = IndexSchema.from_dict({
+        "index": {
+            "name": USER_PROJECT_COLLECTION,
+            "prefix": "user_project",
+            "key_separator": ":",
+            "storage_type": "hash",
+        },
+        "fields": [
+            {
+                "name": "id",
+                "type": "tag",
+            },
+            {
+                "name": "doc_id",
+                "type": "tag",
+            },
+            {
+                "name": "text",
+                "type": "text",
+            },
+            {
+                "name": "vector",
+                "type": "vector",
+                "attrs": {
+                    "algorithm": "flat",
+                    "datatype": "float32",
+                    "dims": EMBED_VECTOR_DIM,
+                    "distance_metric": DEFAULT_METRIC_TYPE.lower(),
+                }
+            },
+            # Metadata
+            {
+                "name": "project_name",
                 "type": "tag"
             },
             {
