@@ -3,7 +3,7 @@ from llama_index.core.schema import BaseNode
 from typing import List, Sequence, Optional, Tuple
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.core.ingestion import IngestionPipeline, IngestionCache
-from app.config.app_config import RAG_GITHUB_COLLECTION, MXBAI_EMBED_LARGE_MODEL_NAME
+from app.config.app_config import GITHUB_COLLECTION, MXBAI_EMBED_LARGE_MODEL_NAME
 from app.config.llama_index_config import get_llama_index_embedding, get_llama_index_vector_store, get_llama_index_cache
 
 
@@ -36,7 +36,7 @@ def insert_nodes_to_cache_from_documents(db_number: int, documents: List[Documen
             ],
             cache=IngestionCache(
                 cache=cache,
-                collection=RAG_GITHUB_COLLECTION,
+                collection=GITHUB_COLLECTION,
             ),
         )
         nodes = pipeline.run(documents=documents)
@@ -55,7 +55,7 @@ def insert_nodes_to_cache(db_number: int, nodes: Sequence[BaseNode]) -> None:
                 (node.get_doc_id(), node.to_dict())
                 for node in nodes
             ],
-            collection=RAG_GITHUB_COLLECTION,
+            collection=GITHUB_COLLECTION,
         )
     except Exception as e:
         print(f"Failed to insert nodes to cache: {e}")

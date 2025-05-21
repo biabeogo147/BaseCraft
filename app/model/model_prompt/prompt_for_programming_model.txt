@@ -19,3 +19,5 @@ Then, produce an output JSON with the following structure:
     ...
   ]
 }
+
+This is some similar project information, you can refer to it: {{context_str}}

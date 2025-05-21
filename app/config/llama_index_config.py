@@ -67,10 +67,10 @@ def get_llama_index_vector_store(collection_name: str) -> BasePydanticVectorStor
                 overwrite=RENEW_DB,
                 enable_sparse=False,
                 dim=EMBED_VECTOR_DIM,
-                similarity_metric="COSINE",
                 text_key=DEFAULT_TEXT_FIELD,
                 collection_name=collection_name,
                 embedding_key=DEFAULT_EMBEDDING_FIELD,
+                similarity_metric=DEFAULT_METRIC_TYPE,
                 token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
             )
             if INSERT_RANDOM_DATA:

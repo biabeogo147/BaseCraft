@@ -22,7 +22,7 @@ def create_project(requirement: str, root_dir: str):
 
 def main():
     requirement = input("Enter the project requirement: ")
-    # requirement = "Generate a simple Caro game using python."
+    requirement = "Generate a simple Flappy bird game using python."
     root_dir = input("Enter the project name: ")
 
     print(f"Creating base project for {requirement} at {root_dir}...")

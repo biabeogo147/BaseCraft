@@ -1,49 +1,25 @@
 import json
 from app.config import app_config
+from app.config.app_config import DEFAULT_METRIC_TYPE
 from app.vector_store.milvus import milvus_db
 from app.vector_store.milvus.milvus_db import setup_vector_store
 from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
 
-if __name__ == "__main__":
-    question = ["Who is Van Nhan?"]
 
+def query_milvus(prompt: str, collection_name: str, limit: int = 10) -> str:
     setup_vector_store()
 
     client = milvus_db.client
     search = client.search(
-        data=embedding_ollama(text=question, model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME),
-        collection_name=app_config.RAG_GITHUB_COLLECTION,
-        search_params={"metric_type": "COSINE", "params": {}},
+        data=embedding_ollama(text=[prompt], model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME),
+        search_params={"metric_type": DEFAULT_METRIC_TYPE, "params": {}},
+        collection_name=collection_name,
         output_fields=["content"],
-        limit=3,
+        limit=limit,
     )
 
     retrieved_lines_with_distances = [
         (res["entity"]["content"], res["distance"]) for res in search[0] # If length(search) = length(number of questions)
     ]
-    print(json.dumps(retrieved_lines_with_distances, indent=4))
-    context = "\n".join(
-        [line_with_distance[0] for line_with_distance in retrieved_lines_with_distances]
-    )
 
-    SYSTEM_PROMPT = """
-    Human: You are an AI assistant. You are able to find answers to the questions from the contextual passage snippets provided.
-    """
-
-    USER_PROMPT = f"""
-    Use the following pieces of information enclosed in <context> tags to provide an answer to the question enclosed in <question> tags.
-    <context>
-    {context}
-    </context>
-    
-    <question>
-    {question}
-    </question>
-    """
-
-    result = base_query_ollama(
-        prompt=USER_PROMPT,
-        model_name=app_config.LLAMA_MODEL_NAME,
-    )
-
-    print(result)
+    return json.dumps(retrieved_lines_with_distances, indent=4)

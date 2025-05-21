@@ -2,7 +2,9 @@ import os
 import json
 from typing import Tuple, List
 from app.config import app_config
+from app.config.app_config import GITHUB_COLLECTION
 from app.model.model_output.programming_schema import File
+from app.vector_store.milvus.milvus_rag import query_milvus
 from app.model.model_query.base_ollama_query import base_query_ollama
 from app.model.model_output.hierarchy_structure_schema import FileRequirements
 from app.model.model_output.description_structure_schema import FileDescriptions
@@ -127,16 +129,21 @@ def save(result: str, output_file: str) -> None:
 
 
 def generate_scripts(prompt: str, root_json_files: str):
+    print(f"Retrieving data from Milvus...")
+    rag_query = query_milvus(prompt, GITHUB_COLLECTION)
+
     print("Generating idea...")
     idea_result = base_query_ollama(
         prompt=prompt,
         model_role="idea",
+        context=rag_query,
         model_name=app_config.LLAMA_MODEL_NAME,
     )
     save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
     print(f"Generating description structure...")
     description_structure_result = base_query_ollama(
+        context=rag_query,
         prompt=idea_result,
         model_role="description_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
@@ -146,8 +153,9 @@ def generate_scripts(prompt: str, root_json_files: str):
 
     print(f"Generating hierarchy structure...")
     hierarchy_structure_result = base_query_ollama(
-        prompt=description_structure_result,
+        context=rag_query,
         model_role="hierarchy_structure",
+        prompt=description_structure_result,
         model_name=app_config.LLAMA_MODEL_NAME,
     )
     hierarchy_structure_result = process_depend_on(hierarchy_structure_result)
@@ -171,6 +179,7 @@ def generate_scripts(prompt: str, root_json_files: str):
             prompt=file.model_dump_json(exclude_none=True),
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",
+            context=rag_query,
         )
         save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
         cnt += 1

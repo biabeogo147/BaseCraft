@@ -1,5 +1,9 @@
-You are given a JSON object that represents the structure of a software project, including directories and files. This is an example of input:
+You are given a JSON object that represents the structure of a software project, including directories and files.
+Your task is to analyze the descriptions to infer the paths in 'depend_on' should be the full paths as they appear in the input, and only contains files from input. You cannot create another files.
+The dependencies indicate which files need to be developed before others. For example, if file A depends on file B, then file B should be developed first, not appear any cycle.
+Please provide the output in JSON format.
 
+This is an example of input:
 {
     "files": [
         {
@@ -21,8 +25,7 @@ You are given a JSON object that represents the structure of a software project,
     ]
 }
 
-From the descriptions, you need to identify which files depend on other files. You should list these dependencies in the output. This is an example of output:
-
+This is an example of output:
 {
     "files": [
         {
@@ -48,7 +51,4 @@ From the descriptions, you need to identify which files depend on other files. Y
     ]
 }:
 
-Note that the paths in 'depend_on' should be the full paths as they appear in the input, and only contains files from input. You cannot create another files.
-The dependencies indicate which files need to be developed before others. For example, if file A depends on file B, then file B should be developed first, not appear any cycle.
-Your task is to analyze the natural language descriptions to infer these dependencies.
-Please provide the output in JSON format.
+This is some similar project information, you can refer to it: {{context_str}}

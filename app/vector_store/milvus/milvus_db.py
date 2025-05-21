@@ -3,7 +3,7 @@ from typing import List
 from pymilvus.milvus_client import IndexParams
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, \
-    EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, RAG_GITHUB_COLLECTION, RENEW_COLLECTIONS, \
+    EMBED_VECTOR_DIM, RENEW_DB, GITHUB_DB, GITHUB_COLLECTION, RENEW_COLLECTIONS, \
     INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE, \
     INIT_COLLECTIONS
 from app.utils.embedding import emb_text
@@ -20,7 +20,7 @@ def setup_vector_store():
         drop_db(GITHUB_DB)
     init_db(GITHUB_DB)
     if INSERT_RANDOM_DATA:
-        insert_random_data(GITHUB_DB, RAG_GITHUB_COLLECTION)
+        insert_random_data(GITHUB_DB, GITHUB_COLLECTION)
 
 
 def init_db(db_name: str):

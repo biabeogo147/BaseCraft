@@ -1,13 +1,13 @@
 from llama_index.core.prompts import RichPromptTemplate
-from app.config.app_config import RAG_GITHUB_COLLECTION, LLAMA_MODEL_NAME
 from app.llama_index.llama_index_vectordb import query_index
 from app.config.llama_index_config import get_llama_index_model
+from app.config.app_config import GITHUB_COLLECTION, LLAMA_MODEL_NAME
 
 if __name__ == "__main__":
     question = "Create Python Flappy Bird project"
 
     llm = get_llama_index_model(model_name=LLAMA_MODEL_NAME)
-    vector, response = query_index(question, 3, RAG_GITHUB_COLLECTION, llm)
+    vector, response = query_index(question, 3, GITHUB_COLLECTION, llm)
     for item in vector:
         print(f"Content: {item['content']}, Score: {item['score']}")
 

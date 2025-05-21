@@ -2,7 +2,7 @@ from typing import Dict
 from redis import Redis
 from redisvl.index import SearchIndex
 from redisvl.schema import IndexSchema
-from app.config.app_config import EMBED_VECTOR_DIM, RAG_GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, \
+from app.config.app_config import EMBED_VECTOR_DIM, GITHUB_COLLECTION, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, \
     RENEW_CACHE, REDIS_GITHUB_DB, REDIS_USER_PROJECT_DB, USER_PROJECT_COLLECTION, DEFAULT_METRIC_TYPE
 
 _index = {}
@@ -58,7 +58,7 @@ def create_redis_github_schema() -> IndexSchema:
     """
     schema = IndexSchema.from_dict({
         "index": {
-            "name": RAG_GITHUB_COLLECTION,
+            "name": GITHUB_COLLECTION,
             "prefix": "github",
             "key_separator": ":",
             "storage_type": "hash",

@@ -13,10 +13,10 @@ DEFAULT_TEXT_FIELD = "text"
 DEFAULT_METRIC_TYPE = "COSINE"
 GITHUB_DB = "github_knowledge_base"
 DEFAULT_EMBEDDING_FIELD = "embedding"
-RAG_GITHUB_COLLECTION = "rag_github_collection"
+GITHUB_COLLECTION = "github_collection"
 USER_PROJECT_COLLECTION = "user_project_collection"
-RENEW_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to renew
-INIT_COLLECTIONS = [RAG_GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to initialize
+RENEW_COLLECTIONS = [GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to renew
+INIT_COLLECTIONS = [GITHUB_COLLECTION, USER_PROJECT_COLLECTION] # List collection names to initialize
 
 LLAMA_MODEL_NAME = "llama3.2:3b"
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"
@@ -37,9 +37,15 @@ REDIS_PASSWORD = "PASSWORD"
 
 GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 REPO_NAMES = [
-    "biabeogo147/Magic-wand",
-    "CorentinJ/Real-Time-Voice-Cloning",
-    "feder-cr/Jobs_Applier_AI_Agent_AIHawk",
+    "sourabhv/FlapPyBird",
+    "clear-code-projects/FlappyBird_Python",
+    "LeonMarqs/Flappy-bird-python",
+    "undercase/FlappyKivy",
+    "mohitk05/FlappyBird",
+    "techwithtim/Flappy-Bird",
+    "filhoweuler/python-flappybird",
+    "tjwei/Flappy-Turtle",
+
 ]
 FILE_TYPE_MAPPING = {
     '.py': 'code', '.txt': 'code', '.md': 'code', '.json': 'code',

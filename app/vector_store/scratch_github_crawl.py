@@ -5,14 +5,14 @@ from langchain_text_splitters import Language
 from app.vector_store.redis.redis_db import setup_cache
 from app.utils.github_crawl import get_files_on_repo, github
 from app.vector_store.milvus.milvus_db import setup_vector_store
-from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, RAG_GITHUB_COLLECTION
+from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, GITHUB_COLLECTION, REDIS_GITHUB_DB
 
 if __name__ == "__main__":
     if GITHUB_API_KEY is None:
         raise ValueError("GITHUB_API_KEY environment variable not set")
 
     setup_vector_store()
-    cache_index = setup_cache()
+    cache_indexes = setup_cache()
 
     repos = REPO_NAMES
     for repo_name in repos:
@@ -47,9 +47,9 @@ if __name__ == "__main__":
                     "chunk_index": chunks.index(chunk),
                 })
             milvus_db.insert_data(
-                collection_name=RAG_GITHUB_COLLECTION,
+                collection_name=GITHUB_COLLECTION,
                 data=data_vector_store
             )
-            cache_index.load(data=data_cache)
+            cache_indexes[REDIS_GITHUB_DB].load(data=data_cache)
 
         print(f"Finished processing repository: {repo_name}")
