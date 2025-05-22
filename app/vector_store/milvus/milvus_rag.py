@@ -1,9 +1,9 @@
 import json
 from app.config import app_config
-from app.config.app_config import DEFAULT_METRIC_TYPE
 from app.vector_store.milvus import milvus_db
+from app.config.app_config import DEFAULT_METRIC_TYPE
 from app.vector_store.milvus.milvus_db import setup_vector_store
-from app.model.model_query.base_ollama_query import embedding_ollama, base_query_ollama
+from app.model.model_query.base_ollama_query import embedding_ollama
 
 
 def query_milvus(prompt: str, collection_name: str, limit: int = 10) -> str:

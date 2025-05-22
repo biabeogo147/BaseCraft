@@ -57,3 +57,5 @@ Example Output:
 }
 
 This is some similar project information, you can refer to it: {{context_str}}
+
+This is your previous response, optimize it: {{previous_response}}

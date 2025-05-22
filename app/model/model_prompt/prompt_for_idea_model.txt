@@ -14,3 +14,5 @@ Each project idea should include the following components:
   - Suitable Technologies: [Recommend specific technologies (frameworks, libraries, databases, etc.) that are well-suited for the project.]
 
 This is some similar project information, you can refer to it: {{context_str}}
+
+This is your previous response, optimize it: {{previous_response}}

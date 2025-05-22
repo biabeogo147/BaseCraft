@@ -1,10 +1,9 @@
-from app.utils import splitter
-from app.utils.embedding import emb_text
 from app.vector_store.milvus import milvus_db
 from langchain_text_splitters import Language
 from app.vector_store.redis.redis_db import setup_cache
-from app.utils.github_crawl import get_files_on_repo, github
+from app.utils.process_data_util import split_source_code
 from app.vector_store.milvus.milvus_db import setup_vector_store
+from app.utils.process_data_util import get_files_on_repo, emb_text, get_github_connect
 from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, GITHUB_COLLECTION, REDIS_GITHUB_DB
 
 if __name__ == "__main__":
@@ -17,13 +16,13 @@ if __name__ == "__main__":
     repos = REPO_NAMES
     for repo_name in repos:
         print(f"Processing repository: {repo_name}")
-        repo = github.get_repo(repo_name)
+        repo = get_github_connect().get_repo(repo_name)
         files = get_files_on_repo(repo)
         print(f"Total files: {len(files)}")
 
         for file in files:
             data_vector_store, data_cache = [], []
-            chunks = splitter.split_source_code(file['content'], Language.PYTHON) if file['content'] else []
+            chunks = split_source_code(file['content'], Language.PYTHON) if file['content'] else []
             for chunk in chunks:
                 embedding = emb_text(chunk)
                 data_vector_store.append({
