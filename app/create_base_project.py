@@ -1,6 +1,6 @@
 import os
 import shutil
-from app.utils.generating_workflow import generate_scripts, generate_directories_and_files
+from app.utils.generation_workflow import generate_scripts, generate_directories_and_files
 
 
 def create_project(requirement: str, root_dir: str):

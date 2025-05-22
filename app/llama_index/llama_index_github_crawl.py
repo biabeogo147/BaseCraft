@@ -2,7 +2,7 @@ from llama_index.core import Document
 from langchain_text_splitters import Language
 from app.config.llama_index_config import LANGUAGE_LLAMA_INDEX
 from app.utils.process_data_util import split_source_code, get_github_connect, get_files_on_repo
-from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, REDIS_GITHUB_DB, GITHUB_COLLECTION
+from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, REDIS_GITHUB_DB, GITHUB_RAW_CODE_COLLECTION
 from app.llama_index.llama_index_vectordb import insert_nodes_to_vector_store_from_documents, insert_nodes_to_cache
 
 if __name__ == "__main__":
@@ -31,6 +31,6 @@ if __name__ == "__main__":
                     }
                 )
                 data_vector_store.append(document)
-            nodes = insert_nodes_to_vector_store_from_documents(GITHUB_COLLECTION, data_vector_store)
+            nodes = insert_nodes_to_vector_store_from_documents(GITHUB_RAW_CODE_COLLECTION, data_vector_store)
             # insert_nodes_to_cache(REDIS_GITHUB_RAG_DB, nodes)
         print(f"Finished processing repository: {repo_name}")

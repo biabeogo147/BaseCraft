@@ -37,7 +37,7 @@ def prompt_template(context: str, previous_response: str, path: str) -> str:
     return prompt
 
 
-def emb_text(line) -> List[float]:
+def embedding_text(line) -> List[float]:
     """
     Embeds the input text using the specified embedding model.
     """
@@ -228,3 +228,26 @@ def save(result: str, output_file: str) -> None:
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(result)
     print(f"Response saved to {output_file}")
+
+
+def get_import_list(code: str) -> List[str]:
+    """
+    Extract import statements from the given code.
+    """
+    import_list = []
+    lines = code.split("\n")
+    for line in lines:
+        if line.startswith("import") or line.startswith("from"):
+            import_list.append(line.strip())
+    return import_list
+
+
+def process_raw_hierarchy(hierarchy: List[Dict]) -> List[Dict]:
+    """
+    Process the raw hierarchy data to ensure all dependencies are valid.
+    """
+    processed_hierarchy = []
+    for file in hierarchy:
+        if is_file(file["path"]):
+            processed_hierarchy.append(file)
+    return processed_hierarchy

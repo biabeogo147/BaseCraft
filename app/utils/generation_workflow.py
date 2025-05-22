@@ -1,7 +1,7 @@
 import os
 import json
 from app.config import app_config
-from app.config.app_config import GITHUB_COLLECTION
+from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
 from app.model.model_output.programming_schema import File
 from app.vector_store.milvus.milvus_rag import query_milvus
 from app.model.model_query.base_ollama_query import base_query_ollama
@@ -10,7 +10,7 @@ from app.utils.process_data_util import to_directory_order, combine_results, pro
 
 def generate_scripts(prompt: str, root_json_files: str):
     print(f"Retrieving data from Milvus...")
-    rag_query = query_milvus(prompt, GITHUB_COLLECTION)
+    rag_query = query_milvus(prompt, GITHUB_RAW_CODE_COLLECTION)
 
     print("Generating idea...")
     idea_result = base_query_ollama(

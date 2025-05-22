@@ -1,5 +1,6 @@
 import numpy as np
 from redisvl.query import VectorQuery
+from app.utils.process_data_util import embedding_text
 from app.config.app_config import INSERT_RANDOM_DATA
 from app.vector_store.redis.redis_db import setup_cache
 
@@ -32,7 +33,7 @@ def insert_sample():
         data=[{
                 "id": f"{repo_name[i]}:{path[i]}:{chunk_index[i]}",
                 "doc_id": f"{repo_name[i]}:{path[i]}",
-                "vector": np.array(emb_text(text[i]), dtype=np.float32).tobytes(), # If storage type is "hash", then the vector field must be a byte array
+                "vector": np.array(embedding_text(text[i]), dtype=np.float32).tobytes(), # If storage type is "hash", then the vector field must be a byte array
                 "text": text[i],
                 # Metadata
                 "type": type[i],
@@ -52,7 +53,7 @@ def query_sample():
     print("Querying Redis for similar vectors...")
 
     query_text = "How many people are in the kitchen?"
-    query_vector = np.array(emb_text(query_text), dtype=np.float32).tobytes()
+    query_vector = np.array(embedding_text(query_text), dtype=np.float32).tobytes()
 
     query = VectorQuery(
         num_results=5,

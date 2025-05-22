@@ -1,5 +1,5 @@
 import os
-from app.utils.generating_workflow import generate_scripts
+from app.utils.generation_workflow import generate_scripts
 
 if __name__ == "__main__":
     root_dir = "response"
