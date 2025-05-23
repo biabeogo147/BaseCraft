@@ -65,6 +65,7 @@ def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str
         "description_structure": FileDescriptions.model_json_schema,
         "hierarchy_structure": FileRequirements.model_json_schema,
         "programming": File.model_json_schema,
+        "compile_error_fix": File.model_json_schema,
 
         # repo process workflow
         "file_description": FileDescription.model_json_schema,

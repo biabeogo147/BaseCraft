@@ -4,12 +4,21 @@ from typing import Tuple, List
 from app.config import app_config
 from app.utils.utils import save, is_file, llm_query
 from app.llm.llm_output.programming_schema import File
-from app.vector_store.milvus.milvus_rag import query_milvus
-from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
 from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
 from app.llm.llm_output.description_structure_schema import FileDescriptions
+from app.vector_store.milvus.milvus_rag import query_milvus_with_prompt, query_milvus_with_metadata
+from app.config.app_config import GITHUB_IDEA_COLLECTION, GITHUB_DESCRIPTION_STRUCTURE_COLLECTION, \
+    GITHUB_HIERARCHY_STRUCTURE_COLLECTION
 from app.llm.llm_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
     FileCombined
+
+
+def get_depend_on_script(depend_on: List[str], code_save_dir: str) -> str:
+    depend_on_script = ""
+    for file in depend_on:
+        with open(f"{code_save_dir}\\{os.path.basename(file)}_fixing.json", "r", encoding="utf-8") as f:
+            depend_on_script += f"file:\n{f.read()}\n\n"
+    return depend_on_script
 
 
 def get_edge(directoryCombined: FileCombines) -> Tuple[List[List[int]], List[int], int]:
@@ -115,9 +124,9 @@ def process_file_path(structure_result: str) -> str:
 
 def generate_scripts(prompt: str, root_json_files: str):
     print(f"Retrieving data from Milvus...")
-    rag_query = query_milvus(prompt, GITHUB_RAW_CODE_COLLECTION)
 
     print("Generating idea...")
+    rag_query = query_milvus_with_prompt(prompt, GITHUB_IDEA_COLLECTION, limit=1)
     idea_result = llm_query(
         prompt=prompt,
         countSelfLoop=2,
@@ -127,7 +136,9 @@ def generate_scripts(prompt: str, root_json_files: str):
     )
     save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
+    # Get idea_rag_query metadata to get all DESCRIPTION_STRUCTURE belong to that repo
     print(f"Generating description structure...")
+    rag_query = query_milvus_with_metadata(dict(), GITHUB_DESCRIPTION_STRUCTURE_COLLECTION)
     description_structure_result = llm_query(
         countSelfLoop=5,
         context=rag_query,
@@ -138,7 +149,9 @@ def generate_scripts(prompt: str, root_json_files: str):
     description_structure_result = process_file_path(description_structure_result)
     save(description_structure_result, f"{root_json_files}\\description_structure_model_response.json")
 
+    # Get idea_rag_query metadata above to get all HIERARCHY_STRUCTURE belong to that repo
     print(f"Generating hierarchy structure...")
+    rag_query = query_milvus_with_metadata(dict(), GITHUB_HIERARCHY_STRUCTURE_COLLECTION)
     hierarchy_structure_result = llm_query(
         countSelfLoop=5,
         context=rag_query,
@@ -161,17 +174,27 @@ def generate_scripts(prompt: str, root_json_files: str):
     # Dựa vào depend on để cung cấp context cho programming llm
     print(f"Generating source codes...")
     root_programming_json = os.path.join(root_json_files, "programming_model_response")
+    root_fix_code_json = os.path.join(root_json_files, "fixing_model_response")
     os.makedirs(root_programming_json)
+    os.makedirs(root_fix_code_json)
     cnt = 0
     for file in directory_order.files:
         programming_result = llm_query(
+            context=get_depend_on_script(file.depend_on, root_fix_code_json),
             prompt=file.model_dump_json(exclude_none=True),
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",
-            context=rag_query,
             countSelfLoop=5,
         )
         save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
+        fixing_result = llm_query(
+            model_name=app_config.LLAMA_MODEL_NAME,
+            model_role="compile_error_fix",
+            prompt=programming_result,
+            context=file.description,
+            countSelfLoop=5,
+        )
+        save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
         cnt += 1
     print(f"Generated {cnt} files.")
 

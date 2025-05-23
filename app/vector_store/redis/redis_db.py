@@ -86,7 +86,7 @@ def create_redis_github_schema() -> IndexSchema:
                     "distance_metric": DEFAULT_METRIC_TYPE.lower(),
                 }
             },
-            # Metadata
+            # Metadata #Check if do not define metadata in schema
             {
                 "name": "repo_name",
                 "type": "tag"

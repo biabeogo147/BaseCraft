@@ -20,6 +20,6 @@ Then, produce an output JSON with the following structure:
   ]
 }
 
-This is some similar project information, you can refer to it: {{context_str}}
+There are depend_on files that your code depends on. You can import them only if you need them: {{context_str}}.
 
 This is your previous response, optimize it: {{previous_response}}
