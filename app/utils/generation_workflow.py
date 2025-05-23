@@ -3,12 +3,12 @@ import json
 from typing import Tuple, List
 from app.config import app_config
 from app.utils.utils import save, is_file, llm_query
-from app.model.model_output.programming_schema import File
+from app.llm.llm_output.programming_schema import File
 from app.vector_store.milvus.milvus_rag import query_milvus
 from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
-from app.model.model_output.hierarchy_structure_schema import FileRequirements
-from app.model.model_output.description_structure_schema import FileDescriptions
-from app.model.model_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
+from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
+from app.llm.llm_output.description_structure_schema import FileDescriptions
+from app.llm.llm_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
     FileCombined
 
 
@@ -158,7 +158,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     save(directory_order.model_dump_json(exclude_none=True, indent=4), f"{root_json_files}\\directory_order.json")
 
     # Use async query for prompts have equal order
-    # Dựa vào depend on để cung cấp context cho programming model
+    # Dựa vào depend on để cung cấp context cho programming llm
     print(f"Generating source codes...")
     root_programming_json = os.path.join(root_json_files, "programming_model_response")
     os.makedirs(root_programming_json)

@@ -6,7 +6,7 @@ from github.Repository import Repository
 from app.vector_store.milvus import milvus_db
 from app.utils.utils import is_file, embedding_text, llm_query
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
-from app.model.model_output.description_structure_schema import FileDescription, FileDescriptions
+from app.llm.llm_output.description_structure_schema import FileDescription, FileDescriptions
 from app.config.app_config import LANGUAGE_LANGCHAIN, DEFAULT_TEXT_FIELD, DEFAULT_EMBEDDING_FIELD, \
     GITHUB_RAW_CODE_COLLECTION, GITHUB_DESCRIPTION_STRUCTURE_COLLECTION, GITHUB_HIERARCHY_STRUCTURE_COLLECTION, \
     GITHUB_IDEA_COLLECTION, FILE_TYPE_MAPPING, EXTENSION_TO_LANGUAGE, GITHUB_API_KEY

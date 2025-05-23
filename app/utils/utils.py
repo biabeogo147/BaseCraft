@@ -1,17 +1,17 @@
 import os
 from typing import List
-from app.model.model_output.idea_schema import Idea
+from app.llm.llm_output.idea_schema import Idea
 from llama_index.core.prompts import RichPromptTemplate
-from app.model.model_output.programming_schema import File
-from app.model.model_query.base_ollama_query import embedding_ollama, ollama_query
-from app.model.model_output.hierarchy_structure_schema import FileRequirements
-from app.model.model_output.description_structure_schema import FileDescriptions, FileDescription
+from app.llm.llm_output.programming_schema import File
+from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
+from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
+from app.llm.llm_output.description_structure_schema import FileDescriptions, FileDescription
 from app.config.app_config import IS_OLLAMA, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM
 
 
 def prompt_template(context: str, previous_response: str, path: str) -> str:
     """
-    Create a prompt template for model.
+    Create a prompt template for llm.
     """
     template_str = open(path, "r", encoding="utf-8").read()
 
@@ -31,7 +31,7 @@ def prompt_template(context: str, previous_response: str, path: str) -> str:
 
 def embedding_text(line) -> List[float]:
     """
-    Embeds the input text using the specified embedding model.
+    Embeds the input text using the specified embedding llm.
     """
     if IS_OLLAMA:
         result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
@@ -76,7 +76,7 @@ def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str
     while countSelfLoop:
         system_prompt = prompt_template(
             context=context,
-            path=f"model/model_prompt/prompt_for_{model_role}_model.txt",
+            path=f"llm/model_prompt/prompt_for_{model_role}_model.txt",
             previous_response= "" if response is None else response.get('response', ''),
         )
         if IS_OLLAMA:
