@@ -92,12 +92,12 @@ def get_import_list(code: str) -> List[str]:
     return import_list
 
 
-def process_raw_hierarchy(hierarchy: List[Dict]) -> List[Dict]:
+def process_raw_hierarchy(files: List[Dict]) -> List[Dict]: #Xu li them
     """
     Process the raw hierarchy data to ensure all dependencies are valid.
     """
     processed_hierarchy = []
-    for file in hierarchy:
+    for file in files:
         if is_file(file["path"]):
             processed_hierarchy.append(file)
     return processed_hierarchy
@@ -162,12 +162,12 @@ def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Di
         file_requirements.append({
             "path": file['path'],
             "repo_name": repo_name,
-            "depend_on": import_list,
+            "depend_on_raw_path": import_list,
         })
     file_requirements = process_raw_hierarchy(file_requirements)
     milvus_db.insert_data(
         collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
-        data=file_requirements,  # xu li them
+        data=file_requirements,  #Xu li them
     )
 
 

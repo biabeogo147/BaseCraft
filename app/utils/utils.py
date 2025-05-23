@@ -55,7 +55,7 @@ def save(result: str, output_file: str) -> None:
     print(f"Response saved to {output_file}")
 
 
-def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str = None, model_role: str = None) -> str:
+def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str = "", model_role: str = None) -> str:
     """
     Query the LLM with the given prompt and parameters.
     """
