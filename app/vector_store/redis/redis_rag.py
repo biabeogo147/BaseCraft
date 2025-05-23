@@ -1,6 +1,6 @@
 import numpy as np
 from redisvl.query import VectorQuery
-from app.utils.process_data_util import embedding_text
+from app.utils.utils import embedding_text
 from app.config.app_config import INSERT_RANDOM_DATA
 from app.vector_store.redis.redis_db import setup_cache
 

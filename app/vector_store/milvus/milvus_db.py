@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from typing import List
 from pymilvus.milvus_client import IndexParams
-from app.utils.process_data_util import embedding_text
+from app.utils.utils import embedding_text
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, \
     EMBED_VECTOR_DIM, RENEW_DB, KNOWLEDGE_BASE_DB, GITHUB_RAW_CODE_COLLECTION, RENEW_COLLECTIONS, \

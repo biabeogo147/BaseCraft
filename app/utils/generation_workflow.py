@@ -2,11 +2,10 @@ import os
 import json
 from typing import Tuple, List
 from app.config import app_config
-from app.utils.process_data_util import save, is_file
+from app.utils.utils import save, is_file, llm_query
 from app.model.model_output.programming_schema import File
 from app.vector_store.milvus.milvus_rag import query_milvus
 from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
-from app.model.model_query.base_ollama_query import base_query_ollama
 from app.model.model_output.hierarchy_structure_schema import FileRequirements
 from app.model.model_output.description_structure_schema import FileDescriptions
 from app.model.model_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
@@ -119,7 +118,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     rag_query = query_milvus(prompt, GITHUB_RAW_CODE_COLLECTION)
 
     print("Generating idea...")
-    idea_result = base_query_ollama(
+    idea_result = llm_query(
         prompt=prompt,
         countSelfLoop=2,
         model_role="idea",
@@ -129,7 +128,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
     print(f"Generating description structure...")
-    description_structure_result = base_query_ollama(
+    description_structure_result = llm_query(
         countSelfLoop=5,
         context=rag_query,
         prompt=idea_result,
@@ -140,7 +139,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     save(description_structure_result, f"{root_json_files}\\description_structure_model_response.json")
 
     print(f"Generating hierarchy structure...")
-    hierarchy_structure_result = base_query_ollama(
+    hierarchy_structure_result = llm_query(
         countSelfLoop=5,
         context=rag_query,
         model_role="hierarchy_structure",
@@ -164,7 +163,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     os.makedirs(root_programming_json)
     cnt = 0
     for file in directory_order.files:
-        programming_result = base_query_ollama(
+        programming_result = llm_query(
             prompt=file.model_dump_json(exclude_none=True),
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",

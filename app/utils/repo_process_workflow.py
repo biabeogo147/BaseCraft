@@ -4,8 +4,7 @@ from typing import List, Dict
 from app.config import app_config
 from github.Repository import Repository
 from app.vector_store.milvus import milvus_db
-from app.utils.process_data_util import is_file, embedding_text
-from app.model.model_query.base_ollama_query import base_query_ollama
+from app.utils.utils import is_file, embedding_text, llm_query
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from app.model.model_output.description_structure_schema import FileDescription, FileDescriptions
 from app.config.app_config import LANGUAGE_LANGCHAIN, DEFAULT_TEXT_FIELD, DEFAULT_EMBEDDING_FIELD, \
@@ -133,7 +132,7 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
 def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Dict]) -> List[FileDescription]:
     file_descriptions = []
     for file in repo_files:
-        description_file = base_query_ollama(
+        description_file = llm_query(
             countSelfLoop=2,
             prompt=file['content'],
             model_role="file_description",
@@ -176,7 +175,7 @@ def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[FileDesc
     file_descriptions_string = FileDescriptions(
         files=file_descriptions,
     ).model_dump_json(exclude_none=True)
-    idea_summary = base_query_ollama(
+    idea_summary = llm_query(
         countSelfLoop=2,
         model_role="idea_summary",
         prompt=file_descriptions_string,
