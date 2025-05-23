@@ -158,6 +158,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     save(directory_order.model_dump_json(exclude_none=True, indent=4), f"{root_json_files}\\directory_order.json")
 
     # Use async query for prompts have equal order
+    # Dựa vào depend on để cung cấp context cho programming model
     print(f"Generating source codes...")
     root_programming_json = os.path.join(root_json_files, "programming_model_response")
     os.makedirs(root_programming_json)
