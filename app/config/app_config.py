@@ -1,4 +1,5 @@
 import os
+from langchain_text_splitters import Language
 
 IS_OLLAMA = True
 CACHE_NAME = "redis"
@@ -108,4 +109,22 @@ EXTENSION_TO_LANGUAGE = {
     '.xml': 'XML',
     '.yaml': 'YAML',
     '.yml': 'YAML',
+}
+LANGUAGE_LANGCHAIN = {
+    "C": Language.C,
+    "Go": Language.GO,
+    "PHP": Language.PHP,
+    "C++": Language.CPP,
+    "C#": Language.CSHARP,
+    "Java": Language.JAVA,
+    "Ruby": Language.RUBY,
+    "Rust": Language.RUST,
+    "HTML": Language.HTML,
+    "Swift": Language.SWIFT,
+    "Python": Language.PYTHON,
+    "Kotlin": Language.KOTLIN,
+    "JavaScript": Language.JS,
+    "TypeScript": Language.TS,
+    "Markdown": Language.MARKDOWN,
+    "Shell Script": Language.POWERSHELL,
 }

@@ -1,11 +1,117 @@
 import os
 import json
+from typing import Tuple, List
 from app.config import app_config
-from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
+from app.utils.process_data_util import save, is_file
 from app.model.model_output.programming_schema import File
 from app.vector_store.milvus.milvus_rag import query_milvus
+from app.config.app_config import GITHUB_RAW_CODE_COLLECTION
 from app.model.model_query.base_ollama_query import base_query_ollama
-from app.utils.process_data_util import to_directory_order, combine_results, process_depend_on, process_file_path, save
+from app.model.model_output.hierarchy_structure_schema import FileRequirements
+from app.model.model_output.description_structure_schema import FileDescriptions
+from app.model.model_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
+    FileCombined
+
+
+def get_edge(directoryCombined: FileCombines) -> Tuple[List[List[int]], List[int], int]:
+    files = directoryCombined.files
+    file2index = {file.path: i for i, file in enumerate(files)}
+
+    num_node = len(files)
+    count_in = [0] * num_node
+    edges = [[] for _ in range(num_node)]
+    for i, file in enumerate(files):
+        for depend_file in file.depend_on:
+            index = file2index.get(depend_file)
+            if index:
+                edges[index].append(i)
+                count_in[i] += 1
+    return edges, count_in, num_node
+
+
+def topological_sort(edges: List[List[int]], count_in: List[int], num_node: int) -> List[Tuple[int, int]]:
+    order = []
+    for i in range(num_node):
+        if count_in[i] == 0:
+            order.append((i, 0))
+
+    cnt = 0
+    while cnt < len(order):
+        node, node_order = order[cnt]
+        cnt += 1
+        for neighbor in edges[node]:
+            count_in[neighbor] -= 1
+            if count_in[neighbor] == 0:
+                order.append((neighbor, node_order + 1))
+
+    return order
+
+
+def to_directory_order(directoryCombined: FileCombines) -> FileOrders:
+    edges, count_in, num_node = get_edge(directoryCombined)
+    topo_order = topological_sort(edges, count_in, num_node)
+    file_order = [
+        FileOrder(
+            order=order[1],
+            path=directoryCombined.files[order[0]].path,
+            depend_on=directoryCombined.files[order[0]].depend_on,
+            description=directoryCombined.files[order[0]].description,
+        )
+        for order in topo_order
+    ]
+    file_orders = FileOrders(files=[file for file in file_order])
+    return file_orders
+
+
+def combine_results(structure_result: str, hierarchy_result: str) -> FileCombines:
+    json_structure = json.loads(structure_result)
+    json_hierarchy = json.loads(hierarchy_result)
+    hierarchy = FileRequirements(**json_hierarchy)
+    description = FileDescriptions(**json_structure)
+
+    combined_files = []
+    all_paths = [f.path for f in description.files]
+    hierarchy_files = {f.path: f.depend_on for f in hierarchy.files}
+    description_files = {f.path: f.description for f in description.files}
+
+    for path in all_paths:
+        file_combined = FileCombined(
+            path=path,
+            depend_on=hierarchy_files.get(path, []),
+            description=description_files.get(path, ""),
+        )
+        combined_files.append(file_combined)
+
+    combined = FileCombines(files=combined_files)
+
+    return combined
+
+
+def process_depend_on(hierarchy_result: str) -> str:
+    json_hierarchy = json.loads(hierarchy_result)
+    hierarchy = FileRequirements(**json_hierarchy)
+
+    files = hierarchy.files
+    for i, file in enumerate(files):
+        for depend_file in file.depend_on:
+            if not is_file(depend_file) and depend_file != file.path:
+                files[i].depend_on.remove(depend_file)
+
+    return hierarchy.model_dump_json(exclude_none=True, indent=4)
+
+
+def process_file_path(structure_result: str) -> str:
+    json_structure = json.loads(structure_result)
+    structure = FileDescriptions(**json_structure)
+
+    new_files = []
+    files = structure.files
+    for file in files:
+        if is_file(file.path):
+            new_files.append(file)
+    structure.files = new_files
+
+    return structure.model_dump_json(exclude_none=True, indent=4)
 
 
 def generate_scripts(prompt: str, root_json_files: str):

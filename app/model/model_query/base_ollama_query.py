@@ -5,7 +5,7 @@ from app.model.model_output.idea_schema import Idea
 from app.utils.process_data_util import prompt_template
 from app.model.model_output.programming_schema import File
 from app.model.model_output.hierarchy_structure_schema import FileRequirements
-from app.model.model_output.description_structure_schema import FileDescriptions
+from app.model.model_output.description_structure_schema import FileDescriptions, FileDescription
 
 client = Client(
     host=OLLAMA_HOST,
@@ -15,10 +15,15 @@ client = Client(
 def base_query_ollama(prompt: str, model_name: str, countSelfLoop: int = 0, context: Optional[str] = None, model_role: Optional[str] = None) -> str:
     try:
         schema_mapping = {
+            # generation workflow
             "idea": Idea.model_json_schema,
             "description_structure": FileDescriptions.model_json_schema,
             "hierarchy_structure": FileRequirements.model_json_schema,
             "programming": File.model_json_schema,
+
+            # repo process workflow
+            "file_description": FileDescription.model_json_schema,
+            "idea_summary": Idea.model_json_schema,
         }
         model_json_schema = schema_mapping.get(model_role, lambda: None)()
 

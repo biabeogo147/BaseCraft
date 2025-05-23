@@ -2,7 +2,6 @@ from redis import Redis
 from app.config.app_config import *
 from llama_index.core.llms import LLM
 from llama_index.llms.ollama import Ollama
-from langchain_text_splitters import Language
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.core.storage.kvstore.types import BaseKVStore
@@ -12,24 +11,6 @@ from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
 
 LLAMA_INDEX_DB = "default"
-LANGUAGE_LLAMA_INDEX = {
-    "C": Language.C,
-    "Go": Language.GO,
-    "PHP": Language.PHP,
-    "C++": Language.CPP,
-    "C#": Language.CSHARP,
-    "Java": Language.JAVA,
-    "Ruby": Language.RUBY,
-    "Rust": Language.RUST,
-    "HTML": Language.HTML,
-    "Swift": Language.SWIFT,
-    "Python": Language.PYTHON,
-    "Kotlin": Language.KOTLIN,
-    "JavaScript": Language.JS,
-    "TypeScript": Language.TS,
-    "Markdown": Language.MARKDOWN,
-    "Shell Script": Language.POWERSHELL,
-}
 
 _model = {}
 _cache = {}

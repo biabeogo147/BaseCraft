@@ -1,7 +1,7 @@
 from llama_index.core import Document
 from langchain_text_splitters import Language
-from app.config.llama_index_config import LANGUAGE_LLAMA_INDEX
-from app.utils.process_data_util import split_source_code, get_github_connect, get_files_on_repo
+from app.config.app_config import LANGUAGE_LANGCHAIN
+from app.utils.repo_process_workflow import split_source_code, get_files_on_repo, get_github_connect
 from app.config.app_config import GITHUB_API_KEY, REPO_NAMES, REDIS_GITHUB_DB, GITHUB_RAW_CODE_COLLECTION
 from app.llama_index.llama_index_vectordb import insert_nodes_to_vector_store_from_documents, insert_nodes_to_cache
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
         for file in files:
             data_vector_store = []
-            chunks = split_source_code(file['content'], LANGUAGE_LLAMA_INDEX.get(file['language'], Language.PYTHON)) if file['content'] else []
+            chunks = split_source_code(file['content'], LANGUAGE_LANGCHAIN.get(file['language'], Language.PYTHON)) if file['content'] else []
             for index, chunk in enumerate(chunks):
                 document = Document(
                     text=chunk,
