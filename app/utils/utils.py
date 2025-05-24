@@ -77,7 +77,7 @@ def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str
     while countSelfLoop:
         system_prompt = prompt_template(
             context=context,
-            path=f"llm/model_prompt/prompt_for_{model_role}_model.txt",
+            path=f"llm/llm_prompt/prompt_for_{model_role}_model.txt",
             previous_response= "" if response is None else response.get('response', ''),
         )
         if IS_OLLAMA:

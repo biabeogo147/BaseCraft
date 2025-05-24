@@ -126,22 +126,22 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Retrieving data from Milvus...")
 
     print("Generating idea...")
-    rag_query = query_milvus_with_prompt(prompt, GITHUB_IDEA_COLLECTION, limit=1)
+    # rag_query = query_milvus_with_prompt(prompt, GITHUB_IDEA_COLLECTION, limit=1)
     idea_result = llm_query(
         prompt=prompt,
         countSelfLoop=2,
         model_role="idea",
-        context=rag_query,
+        # context=rag_query,
         model_name=app_config.LLAMA_MODEL_NAME,
     )
     save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
     # Get idea_rag_query metadata to get all DESCRIPTION_STRUCTURE belong to that repo
     print(f"Generating description structure...")
-    rag_query = query_milvus_with_metadata(dict(), GITHUB_DESCRIPTION_STRUCTURE_COLLECTION)
+    # rag_query = query_milvus_with_metadata(dict(), GITHUB_DESCRIPTION_STRUCTURE_COLLECTION)
     description_structure_result = llm_query(
         countSelfLoop=5,
-        context=rag_query,
+        # context=rag_query,
         prompt=idea_result,
         model_role="description_structure",
         model_name=app_config.LLAMA_MODEL_NAME,
@@ -151,10 +151,10 @@ def generate_scripts(prompt: str, root_json_files: str):
 
     # Get idea_rag_query metadata above to get all HIERARCHY_STRUCTURE belong to that repo
     print(f"Generating hierarchy structure...")
-    rag_query = query_milvus_with_metadata(dict(), GITHUB_HIERARCHY_STRUCTURE_COLLECTION)
+    # rag_query = query_milvus_with_metadata(dict(), GITHUB_HIERARCHY_STRUCTURE_COLLECTION)
     hierarchy_structure_result = llm_query(
         countSelfLoop=5,
-        context=rag_query,
+        # context=rag_query,
         model_role="hierarchy_structure",
         prompt=description_structure_result,
         model_name=app_config.LLAMA_MODEL_NAME,
