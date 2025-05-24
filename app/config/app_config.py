@@ -60,7 +60,6 @@ REPO_NAMES = [
     "clear-code-projects/FlappyBird_Python",
     "LeonMarqs/Flappy-bird-python",
     "undercase/FlappyKivy",
-    "mohitk05/FlappyBird",
     "techwithtim/Flappy-Bird",
     "filhoweuler/python-flappybird",
     "tjwei/Flappy-Turtle",

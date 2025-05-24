@@ -14,7 +14,7 @@ from app.config.app_config import LANGUAGE_LANGCHAIN, DEFAULT_TEXT_FIELD, DEFAUL
 github = None
 
 
-def split_source_code(text: str, language: Language) -> List:
+def split_source_code(text: str, language: Language) -> List[str]:
     """
     Splits the input text into chunks of specified size and overlap.
 
@@ -27,9 +27,31 @@ def split_source_code(text: str, language: Language) -> List:
     """
     try:
         text_splitter = RecursiveCharacterTextSplitter.from_language(
-            chunk_size=1000,
+            chunk_size=500,
             chunk_overlap=0,
             language=language,
+        )
+        chunks = text_splitter.split_text(text)
+        return chunks
+    except Exception as e:
+        print(f"Error splitting text: {e}")
+        return []
+
+
+def split_text(text: str) -> List[str]:
+    """
+    Splits the input text into chunks of specified size and overlap.
+
+    Args:
+        text (str): The text to be split.
+
+    Returns:
+        list: A list of text chunks.
+    """
+    try:
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=0,
         )
         chunks = text_splitter.split_text(text)
         return chunks
@@ -129,41 +151,45 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
         )
 
 
-def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Dict]) -> List[FileDescription]:
-    file_descriptions = []
+def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Dict]) -> List[Dict]:
+    file_descriptions_all = []
     for file in repo_files:
+        file_descriptions = []
         description_file = llm_query(
             countSelfLoop=2,
             prompt=file['content'],
             model_role="file_description",
             model_name=app_config.LLAMA_MODEL_NAME,
         )
-        embedding_description = embedding_text(description_file)
-        file_descriptions.append({
-            DEFAULT_TEXT_FIELD: description_file,
-            DEFAULT_EMBEDDING_FIELD: embedding_description,
-            # Metadata
-            "type": file['type'],
-            "path": file['path'],
-            "repo_name": repo_name,
-            "language": file['language'],
-        })
-    milvus_db.insert_data(
-        collection_name=GITHUB_DESCRIPTION_STRUCTURE_COLLECTION,
-        data=file_descriptions,
-    )
-    return file_descriptions
+        split_description_file = split_text(description_file)
+        for i, description in enumerate(split_description_file):
+            embedding_description = embedding_text(description)
+            file_descriptions.append({
+                DEFAULT_TEXT_FIELD: description,
+                DEFAULT_EMBEDDING_FIELD: embedding_description,
+                # Metadata
+                "chunk_index": i,
+                "path": file['path'],
+                "repo_name": repo_name,
+            })
+        milvus_db.insert_data(
+            collection_name=GITHUB_DESCRIPTION_STRUCTURE_COLLECTION,
+            data=file_descriptions,
+        )
+        file_descriptions_all.extend(file_descriptions)
+    return file_descriptions_all
 
 
 def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Dict]):
     file_requirements = []
     for file in repo_files:
-        import_list = get_import_list(file['content'])
-        file_requirements.append({
-            "path": file['path'],
-            "repo_name": repo_name,
-            "depend_on_raw_path": import_list,
-        })
+        if file['type'] == 'code':
+            import_list = get_import_list(file['content'])
+            file_requirements.append({
+                "path": file['path'],
+                "repo_name": repo_name,
+                "depend_on_raw_path": import_list,
+            })
     file_requirements = process_raw_hierarchy(file_requirements)
     milvus_db.insert_data(
         collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
@@ -171,9 +197,14 @@ def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Di
     )
 
 
-def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[FileDescription]):
+def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
     file_descriptions_string = FileDescriptions(
-        files=file_descriptions,
+        files=[
+            FileDescription(
+                path=file['path'],
+                description=file[DEFAULT_TEXT_FIELD],
+            ) for file in file_descriptions
+        ]
     ).model_dump_json(exclude_none=True)
     idea_summary = llm_query(
         countSelfLoop=2,
@@ -181,13 +212,16 @@ def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[FileDesc
         prompt=file_descriptions_string,
         model_name=app_config.LLAMA_MODEL_NAME,
     )
-    embedding_idea = embedding_text(idea_summary)
-    milvus_db.insert_data(
-        collection_name=GITHUB_IDEA_COLLECTION,
-        data=[{
-            DEFAULT_TEXT_FIELD: idea_summary,
-            DEFAULT_EMBEDDING_FIELD: embedding_idea,
-            # Metadata
-            "repo_name": repo_name,
-        }],
-    )
+    split_idea_summary = split_text(idea_summary)
+    for i, idea in enumerate(split_idea_summary):
+        embedding_idea = embedding_text(idea)
+        milvus_db.insert_data(
+            collection_name=GITHUB_IDEA_COLLECTION,
+            data=[{
+                DEFAULT_TEXT_FIELD: idea,
+                DEFAULT_EMBEDDING_FIELD: embedding_idea,
+                # Metadata
+                "chunk_index": i,
+                "repo_name": repo_name,
+            }],
+        )

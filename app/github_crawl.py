@@ -15,7 +15,7 @@ if __name__ == "__main__":
         print(f"Total files: {len(files)}")
 
         insert_raw_code_to_vector_store(repo_name=repo_name, repo_files=files)
-        insert_file_requirements_to_vector_store(repo_name=repo_name, repo_files=files)
+        # insert_file_requirements_to_vector_store(repo_name=repo_name, repo_files=files)
         file_descriptions = insert_file_descriptions_to_vector_store(repo_name=repo_name, repo_files=files)
         insert_idea_to_vector_store(repo_name=repo_name, file_descriptions=file_descriptions)
 

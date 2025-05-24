@@ -68,10 +68,11 @@ def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str
         "compile_error_fix": File.model_json_schema,
 
         # repo process workflow
-        "file_description": FileDescription.model_json_schema,
+        "file_description": None,
         "idea_summary": Idea.model_json_schema,
     }
-    model_json_schema = schema_mapping.get(model_role, lambda: None)()
+    schema_method = schema_mapping.get(model_role)
+    model_json_schema = schema_method() if callable(schema_method) else None
 
     response = None
     while countSelfLoop:
