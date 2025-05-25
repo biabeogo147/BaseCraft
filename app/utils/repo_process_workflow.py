@@ -27,7 +27,7 @@ def split_source_code(text: str, language: Language) -> List[str]:
     """
     try:
         text_splitter = RecursiveCharacterTextSplitter.from_language(
-            chunk_size=500,
+            chunk_size=450,
             chunk_overlap=0,
             language=language,
         )
@@ -50,7 +50,7 @@ def split_text(text: str) -> List[str]:
     """
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
+            chunk_size=450,
             chunk_overlap=0,
         )
         chunks = text_splitter.split_text(text)
