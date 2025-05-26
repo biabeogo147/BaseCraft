@@ -1,12 +1,9 @@
-from tqdm import tqdm
 from typing import List
 from pymilvus.milvus_client import IndexParams
-from app.utils.utils import embedding_text
 from pymilvus import MilvusClient, DataType, CollectionSchema
 from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MILVUS_HOST, \
-    EMBED_VECTOR_DIM, RENEW_DB, KNOWLEDGE_BASE_DB, GITHUB_RAW_CODE_COLLECTION, RENEW_COLLECTIONS, \
-    INSERT_RANDOM_DATA, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE, \
-    INIT_COLLECTIONS
+    EMBED_VECTOR_DIM, RENEW_DB, KNOWLEDGE_BASE_DB, RENEW_COLLECTIONS, DEFAULT_EMBEDDING_FIELD, \
+    DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE, INIT_COLLECTIONS
 
 client = MilvusClient(
     uri=MILVUS_HOST,
@@ -19,8 +16,6 @@ def setup_vector_store():
     if RENEW_DB:
         drop_db(KNOWLEDGE_BASE_DB)
     init_db(KNOWLEDGE_BASE_DB)
-    if INSERT_RANDOM_DATA:
-        insert_random_data(KNOWLEDGE_BASE_DB, GITHUB_RAW_CODE_COLLECTION)
 
 
 def init_db(db_name: str):
@@ -146,27 +141,6 @@ def drop_collection(collection_name: str):
     except Exception as e:
         print(f"Failed to drop collection: {e}")
         raise
-
-
-def insert_random_data(db_name: str, collection_name: str):
-    client.use_database(
-        db_name=db_name,
-    )
-
-    data = []
-    text_lines = [
-        "There are 2 people in the kitchen.",
-        "There are 5 people in the bathroom.",
-        "There are 10 people in the living room.",
-        "Van Nhan is a Dau Buoi."
-    ]
-    for i, line in enumerate(tqdm(text_lines, desc="Creating embeddings")):
-        data.append({
-            "dense_vector": embedding_text(line),
-            "content": line,
-        })
-    client.insert(collection_name=collection_name, data=data)
-    print(f"Inserted {len(data)} data into collection {collection_name}.")
 
 
 def insert_data(collection_name: str, data: List[dict]):

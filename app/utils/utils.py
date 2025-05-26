@@ -69,18 +69,18 @@ def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: s
     """
     schema_mapping = {
         # generation workflow
-        "idea": Idea.model_json_schema,
-        "description_structure": FileDescriptions.model_json_schema,
-        "hierarchy_structure": FileRequirements.model_json_schema,
-        "programming": File.model_json_schema,
-        "compile_error_fix": File.model_json_schema,
+        "idea": Idea,
+        "description_structure": FileDescriptions,
+        "hierarchy_structure": FileRequirements,
+        "programming": File,
+        "compile_error_fix": File,
 
         # repo process workflow
         "file_description": None,
-        "idea_summary": Idea.model_json_schema,
+        "idea_summary": Idea,
     }
     schema_method = schema_mapping.get(model_role)
-    model_json_schema = schema_method() if callable(schema_method) else None
+    model_json_schema = schema_method.model_json_schema() if schema_method else None
 
     response = ""
     while count_self_loop:
@@ -98,14 +98,14 @@ def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: s
                      ChatMessage(role="system", content=system_prompt)],
                 )
             else:
-                structure_llm = llm.as_structured_llm(output_cls=model_json_schema)
+                structure_llm = llm.as_structured_llm(output_cls=schema_method)
                 response_llama_index = structure_llm.chat(
                     [ChatMessage(role="user", content=prompt),
                      ChatMessage(role="system", content=system_prompt)],
                 )
 
-            if hasattr(response_llama_index, "response") and hasattr(response_llama_index.message, "content"):
-                response = response_llama_index.message.content
+            if hasattr(response_llama_index, "message") and hasattr(response_llama_index.message, "blocks"):
+                response = response_llama_index.message.blocks[0].text
             else:
                 response = 'No content in response from Llama Index.'
                 count_self_loop = 0

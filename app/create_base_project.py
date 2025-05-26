@@ -21,9 +21,9 @@ def create_project(requirement: str, root_dir: str):
 
 
 def main():
-    requirement = input("Enter the project requirement: ")
+    # requirement = input("Enter the project requirement: ")
     requirement = "Generate a simple Flappy bird game using python."
-    root_dir = input("Enter the project name: ")
+    # root_dir = input("Enter the project name: ")
     root_dir = "FlappyBird"
 
     print(f"Creating base project for {requirement} at {root_dir}...")

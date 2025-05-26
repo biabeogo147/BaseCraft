@@ -129,10 +129,10 @@ def generate_scripts(prompt: str, root_json_files: str):
     # rag_query = query_milvus_with_prompt(prompt, GITHUB_IDEA_COLLECTION, limit=1)
     idea_result = llm_query(
         prompt=prompt,
-        count_self_loop=2,
+        count_self_loop=1,
         model_role="idea",
         # context=rag_query,
-        model_name=app_config.LLAMA_MODEL_NAME,
+        model_name=app_config.MODEL_USING,
     )
     save(idea_result, f"{root_json_files}\\idea_model_response.json")
 
@@ -140,11 +140,11 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating description structure...")
     # rag_query = query_milvus_with_metadata(dict(), GITHUB_DESCRIPTION_STRUCTURE_COLLECTION)
     description_structure_result = llm_query(
-        count_self_loop=5,
+        count_self_loop=1,
         # context=rag_query,
         prompt=idea_result,
         model_role="description_structure",
-        model_name=app_config.LLAMA_MODEL_NAME,
+        model_name=app_config.MODEL_USING,
     )
     description_structure_result = process_file_path(description_structure_result)
     save(description_structure_result, f"{root_json_files}\\description_structure_model_response.json")
@@ -153,11 +153,11 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating hierarchy structure...")
     # rag_query = query_milvus_with_metadata(dict(), GITHUB_HIERARCHY_STRUCTURE_COLLECTION)
     hierarchy_structure_result = llm_query(
-        count_self_loop=5,
+        count_self_loop=1,
         # context=rag_query,
         model_role="hierarchy_structure",
         prompt=description_structure_result,
-        model_name=app_config.LLAMA_MODEL_NAME,
+        model_name=app_config.MODEL_USING,
     )
     hierarchy_structure_result = process_depend_on(hierarchy_structure_result)
     save(hierarchy_structure_result, f"{root_json_files}\\hierarchy_structure_model_response.json")
@@ -182,17 +182,17 @@ def generate_scripts(prompt: str, root_json_files: str):
         programming_result = llm_query(
             context=get_depend_on_script(file.depend_on, root_fix_code_json),
             prompt=file.model_dump_json(exclude_none=True),
-            model_name=app_config.LLAMA_MODEL_NAME,
+            model_name=app_config.MODEL_USING,
             model_role="programming",
-            count_self_loop=5,
+            count_self_loop=1,
         )
         save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
         fixing_result = llm_query(
-            model_name=app_config.LLAMA_MODEL_NAME,
+            model_name=app_config.MODEL_USING,
             model_role="compile_error_fix",
             prompt=programming_result,
             context=file.description,
-            count_self_loop=5,
+            count_self_loop=1,
         )
         save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
         cnt += 1

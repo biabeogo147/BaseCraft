@@ -6,7 +6,7 @@ EMBED_VECTOR_DIM = 1024
 VECTORDB_NAME = "milvus"
 
 IS_LLAMA_INDEX = True
-API_PROVIDER = "ollama"
+API_PROVIDER = "gemini"
 API_PROVIDER_EMBEDDING = "ollama"
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -44,6 +44,13 @@ INIT_COLLECTIONS = [
 
 LLAMA_MODEL_NAME = "llama3.2:1b"
 QWEN_MODEL_NAME = "qwen2.5-coder:14b"
+GEMINI_3_27b_MODEL_NAME = "gemma-3-27b-it"
+GEMINI_3n_e4b_MODEL_NAME = "gemma-3n-e4b-it"
+GEMINI_1_5_flash_MODEL_NAME = "gemini-1.5-flash"
+GEMINI_1_5_flash_8b_MODEL_NAME = "gemini-1.5-flash-8b"
+GEMINI_2_flash_lite_MODEL_NAME = "gemini-2.0-flash-lite"
+MODEL_USING = GEMINI_2_flash_lite_MODEL_NAME
+
 MXBAI_EMBED_LARGE_MODEL_NAME = "mxbai-embed-large"
 
 OLLAMA_HOST = "http://192.168.0.110:11434"

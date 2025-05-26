@@ -159,7 +159,7 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
             count_self_loop=2,
             prompt=file['content'],
             model_role="file_description",
-            model_name=app_config.LLAMA_MODEL_NAME,
+            model_name=app_config.MODEL_USING,
         )
         split_description_file = split_text(description_file)
         for i, description in enumerate(split_description_file):
@@ -210,7 +210,7 @@ def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
         count_self_loop=2,
         model_role="idea_summary",
         prompt=file_descriptions_string,
-        model_name=app_config.LLAMA_MODEL_NAME,
+        model_name=app_config.MODEL_USING,
     )
     split_idea_summary = split_text(idea_summary)
     for i, idea in enumerate(split_idea_summary):
