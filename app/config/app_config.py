@@ -1,12 +1,15 @@
 import os
 from langchain_text_splitters import Language
 
-IS_LLAMA_INDEX = True
-
-IS_OLLAMA = True
 CACHE_NAME = "redis"
 EMBED_VECTOR_DIM = 1024
 VECTORDB_NAME = "milvus"
+
+IS_LLAMA_INDEX = True
+API_PROVIDER = "ollama"
+API_PROVIDER_EMBEDDING = "ollama"
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 RENEW_DB = False
 RENEW_CACHE = True

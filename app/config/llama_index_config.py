@@ -1,7 +1,9 @@
+from llama_cloud import GeminiEmbedding
 from redis import Redis
 from app.config.app_config import *
 from llama_index.core.llms import LLM
 from llama_index.llms.ollama import Ollama
+from llama_index.llms.gemini import Gemini
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.core.storage.kvstore.types import BaseKVStore
@@ -19,25 +21,33 @@ _vector_store = {}
 
 
 def get_llama_index_model(model_name: str) -> LLM:
-    if IS_OLLAMA:
-        if _model.get("OLLAMA").get(model_name) is None:
-            _model["OLLAMA"][model_name] = Ollama(
+    if _model.get(API_PROVIDER).get(model_name) is None:
+        if API_PROVIDER == "ollama":
+            _model[API_PROVIDER][model_name] = Ollama(
                 model=model_name,
                 base_url=OLLAMA_HOST,
             )
-        return _model[model_name]
-    return LLM()
+        elif API_PROVIDER == "gemini":
+            _model[API_PROVIDER][model_name] = Gemini(
+                model=model_name,
+                api_key=GOOGLE_API_KEY,
+            )
+    return _model[API_PROVIDER][model_name]
 
 
 def get_llama_index_embedding(embedding_name: str) -> BaseEmbedding:
-    if IS_OLLAMA:
-        if _embedding.get("OLLAMA").get(embedding_name) is None:
-            _embedding["OLLAMA"][embedding_name] = OllamaEmbedding(
-                model_name=embedding_name,
+    if _embedding.get(API_PROVIDER_EMBEDDING).get(embedding_name) is None:
+        if API_PROVIDER_EMBEDDING == "ollama":
+            _embedding[API_PROVIDER_EMBEDDING][embedding_name] = OllamaEmbedding(
                 base_url=OLLAMA_HOST,
+                model_name=embedding_name,
             )
-        return _embedding["OLLAMA"][embedding_name]
-    return BaseEmbedding()
+        elif API_PROVIDER_EMBEDDING == "gemini":
+            _embedding[API_PROVIDER_EMBEDDING][embedding_name] = GeminiEmbedding(
+                api_key=GOOGLE_API_KEY,
+                model_name=embedding_name,
+            )
+    return _embedding[API_PROVIDER_EMBEDDING][embedding_name]
 
 
 def get_llama_index_vector_store(collection_name: str) -> BasePydanticVectorStore:

@@ -8,7 +8,8 @@ from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
 from app.llm.llm_output.description_structure_schema import FileDescriptions
 from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
 from app.config.llama_index_config import get_llama_index_model, get_llama_index_embedding
-from app.config.app_config import IS_OLLAMA, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, IS_LLAMA_INDEX
+from app.config.app_config import API_PROVIDER, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, IS_LLAMA_INDEX, \
+    API_PROVIDER_EMBEDDING
 
 
 def prompt_template(context: str, previous_response: str, path: str) -> str:
@@ -41,7 +42,7 @@ def embedding_text(line: str) -> List[float]:
         if isinstance(result, list) and len(result) == EMBED_VECTOR_DIM:
             return result
     else:
-        if IS_OLLAMA:
+        if API_PROVIDER_EMBEDDING == "ollama":
             result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
             return result[0]
     return [0] * EMBED_VECTOR_DIM
@@ -91,11 +92,17 @@ def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: s
         )
         if IS_LLAMA_INDEX:
             llm = get_llama_index_model(model_name=model_name)
-            structure_llm = llm.as_structured_llm(output_cls=model_json_schema)
-            response_llama_index = structure_llm.chat(
-                [ChatMessage(role="user", content=prompt),
-                 ChatMessage(role="system", content=system_prompt)],
-            )
+            if model_json_schema is None:
+                response_llama_index = llm.chat(
+                    [ChatMessage(role="user", content=prompt),
+                     ChatMessage(role="system", content=system_prompt)],
+                )
+            else:
+                structure_llm = llm.as_structured_llm(output_cls=model_json_schema)
+                response_llama_index = structure_llm.chat(
+                    [ChatMessage(role="user", content=prompt),
+                     ChatMessage(role="system", content=system_prompt)],
+                )
 
             if hasattr(response_llama_index, "response") and hasattr(response_llama_index.message, "content"):
                 response = response_llama_index.message.content
@@ -104,7 +111,7 @@ def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: s
                 count_self_loop = 0
 
         else:
-            if IS_OLLAMA:
+            if API_PROVIDER == "ollama":
                 response_llm = ollama_query(
                     prompt=prompt,
                     model_name=model_name,
