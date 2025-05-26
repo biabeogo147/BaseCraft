@@ -1,12 +1,14 @@
 import os
 from typing import List
 from app.llm.llm_output.idea_schema import Idea
-from llama_index.core.prompts import RichPromptTemplate
 from app.llm.llm_output.programming_schema import File
-from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
+from llama_index.core.prompts import RichPromptTemplate
+from llama_index.core.base.llms.types import ChatMessage
 from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
-from app.llm.llm_output.description_structure_schema import FileDescriptions, FileDescription
-from app.config.app_config import IS_OLLAMA, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM
+from app.llm.llm_output.description_structure_schema import FileDescriptions
+from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
+from app.config.llama_index_config import get_llama_index_model, get_llama_index_embedding
+from app.config.app_config import IS_OLLAMA, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, IS_LLAMA_INDEX
 
 
 def prompt_template(context: str, previous_response: str, path: str) -> str:
@@ -29,15 +31,20 @@ def prompt_template(context: str, previous_response: str, path: str) -> str:
     return prompt
 
 
-def embedding_text(line) -> List[float]:
+def embedding_text(line: str) -> List[float]:
     """
     Embeds the input text using the specified embedding llm.
     """
-    if IS_OLLAMA:
-        result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
-        return result[0]
+    if IS_LLAMA_INDEX:
+        embedding_llm = get_llama_index_embedding(embedding_name=MXBAI_EMBED_LARGE_MODEL_NAME)
+        result = embedding_llm.get_text_embedding(line)
+        if isinstance(result, list) and len(result) == EMBED_VECTOR_DIM:
+            return result
     else:
-        return [0] * EMBED_VECTOR_DIM
+        if IS_OLLAMA:
+            result = embedding_ollama([line], model_name=MXBAI_EMBED_LARGE_MODEL_NAME)
+            return result[0]
+    return [0] * EMBED_VECTOR_DIM
 
 
 def is_file(path) -> bool:
@@ -55,7 +62,7 @@ def save(result: str, output_file: str) -> None:
     print(f"Response saved to {output_file}")
 
 
-def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str = "", model_role: str = None) -> str:
+def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: str = "", model_role: str = None) -> str:
     """
     Query the LLM with the given prompt and parameters.
     """
@@ -74,27 +81,43 @@ def llm_query(prompt: str, model_name: str, countSelfLoop: int = 0, context: str
     schema_method = schema_mapping.get(model_role)
     model_json_schema = schema_method() if callable(schema_method) else None
 
-    response = None
-    while countSelfLoop:
+    response = ""
+    while count_self_loop:
+        count_self_loop -= 1
         system_prompt = prompt_template(
             context=context,
+            previous_response= response,
             path=f"llm/llm_prompt/prompt_for_{model_role}_model.txt",
-            previous_response= "" if response is None else response.get('response', ''),
         )
-        if IS_OLLAMA:
-            response = ollama_query(
-                prompt=prompt,
-                model_name=model_name,
-                system_prompt=system_prompt,
-                model_json_schema=model_json_schema,
+        if IS_LLAMA_INDEX:
+            llm = get_llama_index_model(model_name=model_name)
+            structure_llm = llm.as_structured_llm(output_cls=model_json_schema)
+            response_llama_index = structure_llm.chat(
+                [ChatMessage(role="user", content=prompt),
+                 ChatMessage(role="system", content=system_prompt)],
             )
-        else:
-            response = {'response': 'This is a mock response for testing purposes.'}
-        countSelfLoop -= 1
 
-    if 'response' in response:
-        return response['response']
-    else:
-        print("No 'response' key in response.")
-        print(response)
-        return ""
+            if hasattr(response_llama_index, "response") and hasattr(response_llama_index.message, "content"):
+                response = response_llama_index.message.content
+            else:
+                response = 'No content in response from Llama Index.'
+                count_self_loop = 0
+
+        else:
+            if IS_OLLAMA:
+                response_llm = ollama_query(
+                    prompt=prompt,
+                    model_name=model_name,
+                    system_prompt=system_prompt,
+                    model_json_schema=model_json_schema,
+                )
+            else:
+                response_llm = {'response': 'This is a mock response for testing purposes.'}
+
+            if 'response' in response_llm:
+                response = response_llm['response']
+            else:
+                response = 'No response key in response dictionary.'
+                count_self_loop = 0
+
+    return response

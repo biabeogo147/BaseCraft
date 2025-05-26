@@ -129,7 +129,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     # rag_query = query_milvus_with_prompt(prompt, GITHUB_IDEA_COLLECTION, limit=1)
     idea_result = llm_query(
         prompt=prompt,
-        countSelfLoop=2,
+        count_self_loop=2,
         model_role="idea",
         # context=rag_query,
         model_name=app_config.LLAMA_MODEL_NAME,
@@ -140,7 +140,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating description structure...")
     # rag_query = query_milvus_with_metadata(dict(), GITHUB_DESCRIPTION_STRUCTURE_COLLECTION)
     description_structure_result = llm_query(
-        countSelfLoop=5,
+        count_self_loop=5,
         # context=rag_query,
         prompt=idea_result,
         model_role="description_structure",
@@ -153,7 +153,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating hierarchy structure...")
     # rag_query = query_milvus_with_metadata(dict(), GITHUB_HIERARCHY_STRUCTURE_COLLECTION)
     hierarchy_structure_result = llm_query(
-        countSelfLoop=5,
+        count_self_loop=5,
         # context=rag_query,
         model_role="hierarchy_structure",
         prompt=description_structure_result,
@@ -184,7 +184,7 @@ def generate_scripts(prompt: str, root_json_files: str):
             prompt=file.model_dump_json(exclude_none=True),
             model_name=app_config.LLAMA_MODEL_NAME,
             model_role="programming",
-            countSelfLoop=5,
+            count_self_loop=5,
         )
         save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
         fixing_result = llm_query(
@@ -192,7 +192,7 @@ def generate_scripts(prompt: str, root_json_files: str):
             model_role="compile_error_fix",
             prompt=programming_result,
             context=file.description,
-            countSelfLoop=5,
+            count_self_loop=5,
         )
         save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
         cnt += 1

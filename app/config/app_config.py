@@ -1,6 +1,8 @@
 import os
 from langchain_text_splitters import Language
 
+IS_LLAMA_INDEX = True
+
 IS_OLLAMA = True
 CACHE_NAME = "redis"
 EMBED_VECTOR_DIM = 1024

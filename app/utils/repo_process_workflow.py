@@ -156,7 +156,7 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
     for file in repo_files:
         file_descriptions = []
         description_file = llm_query(
-            countSelfLoop=2,
+            count_self_loop=2,
             prompt=file['content'],
             model_role="file_description",
             model_name=app_config.LLAMA_MODEL_NAME,
@@ -207,7 +207,7 @@ def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
         ]
     ).model_dump_json(exclude_none=True)
     idea_summary = llm_query(
-        countSelfLoop=2,
+        count_self_loop=2,
         model_role="idea_summary",
         prompt=file_descriptions_string,
         model_name=app_config.LLAMA_MODEL_NAME,
