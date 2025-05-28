@@ -1,4 +1,6 @@
 import os
+import re
+
 from github import Github
 from typing import List, Dict
 from app.config import app_config
@@ -9,9 +11,9 @@ from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from app.llm.llm_output.description_structure_schema import FileDescription, FileDescriptions
 from app.config.app_config import LANGUAGE_LANGCHAIN, DEFAULT_TEXT_FIELD, DEFAULT_EMBEDDING_FIELD, \
     GITHUB_RAW_CODE_COLLECTION, GITHUB_DESCRIPTION_STRUCTURE_COLLECTION, GITHUB_HIERARCHY_STRUCTURE_COLLECTION, \
-    GITHUB_IDEA_COLLECTION, FILE_TYPE_MAPPING, EXTENSION_TO_LANGUAGE, GITHUB_API_KEY
+    GITHUB_IDEA_COLLECTION, FILE_TYPE_MAPPING, EXTENSION_TO_LANGUAGE, GITHUB_API_KEY, LANGUAGE_PATTERNS, MODULE_TO_PATH
 
-github = None
+_github = None
 
 
 def split_source_code(text: str, language: Language) -> List[str]:
@@ -94,35 +96,53 @@ def get_github_connect() -> Github:
     Returns:
         Github: A Github instance.
     """
-    global github
-    if github is None:
+    global _github
+    if _github is None:
         if GITHUB_API_KEY is None:
             raise ValueError("GITHUB_API_KEY environment variable not set")
-        github = Github(GITHUB_API_KEY)
-    return github
+        _github = Github(GITHUB_API_KEY)
+    return _github
 
 
-def get_import_list(code: str) -> List[str]:
-    """
-    Extract import statements from the given code.
-    """
-    import_list = []
-    lines = code.split("\n")
-    for line in lines:
-        if line.startswith("import") or line.startswith("from"):
-            import_list.append(line.strip())
-    return import_list
+def get_language_from_extension(file_path):
+    """Get the programming language based on file extension."""
+    ext = os.path.splitext(file_path)[1].lower()
+    return EXTENSION_TO_LANGUAGE.get(ext)
 
 
-def process_raw_hierarchy(files: List[Dict]) -> List[Dict]: #Xu li them
-    """
-    Process the raw hierarchy data to ensure all dependencies are valid.
-    """
-    processed_hierarchy = []
-    for file in files:
-        if is_file(file["path"]):
-            processed_hierarchy.append(file)
-    return processed_hierarchy
+def extract_modules_from_line(line, language):
+    """Extract module names from a line of code based on the programming language."""
+    if language not in LANGUAGE_PATTERNS:
+        return []
+
+    patterns = LANGUAGE_PATTERNS[language]
+    modules = []
+
+    for pattern_type, pattern in patterns.items():
+        match = re.search(pattern, line.strip())
+        if match:
+            modules.append(match.group(1))
+
+    return modules
+
+
+def analyze_imports_text(root_dir, project_files):
+    """Analyze import statements in project files and print found modules."""
+    project_files = {os.path.normpath(p) for p in project_files}
+
+    for file_path in project_files:
+        language = get_language_from_extension(file_path)
+        if not language:
+            continue
+
+        print(f"\nAnalyze hierarchy struture of file: {file_path} ({language})")
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                modules = extract_modules_from_line(line, language)
+                for module in modules:
+                    module_paths = MODULE_TO_PATH[language](root_dir, module)
+                    is_in_project = any(os.path.normpath(p) in project_files for p in module_paths)
+                    print(f"Find: '{module}' - {'in project' if is_in_project else 'Outside'}")
 
 
 def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):

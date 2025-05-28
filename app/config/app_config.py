@@ -143,3 +143,29 @@ LANGUAGE_LANGCHAIN = {
     "Markdown": Language.MARKDOWN,
     "Shell Script": Language.POWERSHELL,
 }
+LANGUAGE_PATTERNS = {
+    'Python': {
+        'import': r'^import\s+([\w.]+)',  # import module_name
+        'from': r'^from\s+([\w.]+)\s+import'  # from module_name import ...
+    },
+    'Javascript': {
+        'import': r'^import\s+.*\s+from\s+[\'"]([^\'"]+)[\'"]',  # import ... from 'module'
+        'from': r'^from\s+[\'"]([^\'"]+)[\'"]\s+import'  # from 'module' import ...
+    },
+    'Java': {
+        'import': r'^import\s+([\w.]+);'  # import package.Class;
+    }
+}
+MODULE_TO_PATH = {
+    'Python': lambda root, module: [
+        os.path.join(root, *module.split('.')) + '.py',
+        os.path.join(root, *module.split('.'), '__init__.py')
+    ],
+    'Javascript': lambda root, module: [
+        os.path.join(root, *module.split('/')) + '.js',
+        os.path.join(root, *module.split('/'), 'index.js')
+    ],
+    'Java': lambda root, module: [
+        os.path.join(root, *module.split('.')) + '.java'
+    ]
+}
