@@ -7,7 +7,7 @@ from app.llm.llm_query.base_ollama_query import embedding_ollama
 
 
 def query_milvus_with_prompt(prompt: str, collection_name: str, limit: int = 10) -> str:
-    client = milvus_db.client
+    client = milvus_db.get_client_instance()
     client.use_database(KNOWLEDGE_BASE_DB)
 
     search = client.search(
@@ -18,6 +18,7 @@ def query_milvus_with_prompt(prompt: str, collection_name: str, limit: int = 10)
         limit=limit,
     )
 
+    # Extracting content, distance and metadata from the search results
     retrieved_lines_with_distances = [
         (res["entity"]["content"], res["distance"]) for res in search[0] # If length(search) = length(number of questions)
     ]
@@ -26,7 +27,7 @@ def query_milvus_with_prompt(prompt: str, collection_name: str, limit: int = 10)
 
 
 def query_milvus_with_metadata(metadata: Dict[str, Any], collection_name: str, limit: int = 100) -> str:
-    client = milvus_db.client
+    client = milvus_db.get_client_instance()
     client.use_database(KNOWLEDGE_BASE_DB)
 
     filter_expr = " AND ".join(
