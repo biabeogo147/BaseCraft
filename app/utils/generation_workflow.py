@@ -8,7 +8,7 @@ from app.llm.llm_output.hierarchy_structure_schema import FileRequirements
 from app.llm.llm_output.description_structure_schema import FileDescriptions
 from app.vector_store.milvus.milvus_rag import query_milvus_with_prompt, query_milvus_with_metadata
 from app.config.app_config import GITHUB_IDEA_COLLECTION, GITHUB_DESCRIPTION_STRUCTURE_COLLECTION, \
-    GITHUB_HIERARCHY_STRUCTURE_COLLECTION
+    GITHUB_HIERARCHY_STRUCTURE_COLLECTION, FILE_TYPE_MAPPING
 from app.llm.llm_output.combine_hierarchy_and_description_schema import FileCombines, FileOrders, FileOrder, \
     FileCombined
 
@@ -16,8 +16,11 @@ from app.llm.llm_output.combine_hierarchy_and_description_schema import FileComb
 def get_depend_on_script(depend_on: List[str], code_save_dir: str) -> str:
     depend_on_script = ""
     for file in depend_on:
-        with open(f"{code_save_dir}\\{os.path.basename(file)}_fixing.json", "r", encoding="utf-8") as f:
-            depend_on_script += f"file:\n{f.read()}\n\n"
+        if FILE_TYPE_MAPPING.get(os.path.splitext(file)[1]) == "code":
+            with open(f"{code_save_dir}\\{os.path.basename(file)}_fixing.json", "r", encoding="utf-8") as f:
+                depend_on_script += f"{file}:\n{f.read()}\n\n"
+        else:
+            depend_on_script = f"{file}\n\n"
     return depend_on_script
 
 
@@ -179,31 +182,35 @@ def generate_scripts(prompt: str, root_json_files: str):
     os.makedirs(root_fix_code_json)
     cnt = 0
     for file in directory_order.files:
-        programming_result = llm_query(
-            context=get_depend_on_script(file.depend_on, root_fix_code_json),
-            prompt=file.model_dump_json(exclude_none=True),
-            model_name=app_config.MODEL_USING,
-            model_role="programming",
-            count_self_loop=1,
-        )
-        save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
-        fixing_result = llm_query(
-            model_name=app_config.MODEL_USING,
-            model_role="compile_error_fix",
-            prompt=programming_result,
-            context=file.description,
-            count_self_loop=1,
-        )
-        save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
-        cnt += 1
+        if FILE_TYPE_MAPPING.get(os.path.splitext(file.path)[1]) == "code":
+            programming_result = llm_query(
+                context=get_depend_on_script(file.depend_on, root_fix_code_json),
+                prompt=file.model_dump_json(exclude_none=True),
+                model_name=app_config.MODEL_USING,
+                model_role="programming",
+                count_self_loop=1,
+            )
+            save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
+            fixing_result = llm_query(
+                model_name=app_config.MODEL_USING,
+                model_role="compile_error_fix",
+                prompt=programming_result,
+                context=file.description,
+                count_self_loop=1,
+            )
+            save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
+            cnt += 1
     print(f"Generated {cnt} files.")
 
 
 def generate_directories_and_files(root_json_files: str, root_dir: str) -> None:
     print("Generating directories and files...")
 
-    for file in os.listdir(f"{root_json_files}\\programming_model_response"):
-        with open(f"{root_json_files}\\programming_model_response\\{file}", "r", encoding="utf-8") as f:
+    root_programming_json = os.path.join(root_json_files, "programming_model_response")
+    root_fix_code_json = os.path.join(root_json_files, "fixing_model_response")
+
+    for file in os.listdir(root_fix_code_json):
+        with open(f"{root_fix_code_json}\\{file}", "r", encoding="utf-8") as f:
             programming_result = File(**json.loads(f.read()))
 
         if programming_result:
