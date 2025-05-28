@@ -3,6 +3,9 @@ import re
 
 from github import Github
 from typing import List, Dict
+
+from pyarrow.ipc import new_file
+
 from app.config import app_config
 from github.Repository import Repository
 from app.vector_store.milvus import milvus_db
@@ -104,12 +107,6 @@ def get_github_connect() -> Github:
     return _github
 
 
-def get_language_from_extension(file_path):
-    """Get the programming language based on file extension."""
-    ext = os.path.splitext(file_path)[1].lower()
-    return EXTENSION_TO_LANGUAGE.get(ext)
-
-
 def extract_modules_from_line(line, language):
     """Extract module names from a line of code based on the programming language."""
     if language not in LANGUAGE_PATTERNS:
@@ -126,33 +123,46 @@ def extract_modules_from_line(line, language):
     return modules
 
 
-def analyze_imports_text(root_dir, project_files):
+def get_depend_on(project_files: List[Dict]) -> List[Dict]:
     """Analyze import statements in project files and print found modules."""
-    project_files = {os.path.normpath(p) for p in project_files}
+    project_file_paths = set()
+    for file in project_files:
+        file["path"] = os.path.normpath(file["path"])
+        project_file_paths.add(file["path"])
 
-    for file_path in project_files:
-        language = get_language_from_extension(file_path)
+    hierarchy_structure = []
+    for file in project_files:
+        new_file = {}
+        new_file["path"] = os.path.normpath(file["path"])
+        language = EXTENSION_TO_LANGUAGE.get(os.path.splitext(new_file["path"])[1].lower())
         if not language:
             continue
 
-        print(f"\nAnalyze hierarchy struture of file: {file_path} ({language})")
-        with open(file_path, 'r', encoding='utf-8') as file:
-            for line in file:
-                modules = extract_modules_from_line(line, language)
-                for module in modules:
-                    module_paths = MODULE_TO_PATH[language](root_dir, module)
-                    is_in_project = any(os.path.normpath(p) in project_files for p in module_paths)
-                    print(f"Find: '{module}' - {'in project' if is_in_project else 'Outside'}")
+        new_file["depend_on"] = []
+        file_path = new_file["path"]
+        print(f"\nAnalyze hierarchy structure of file: {file_path} ({language})")
+        for line in file["content"].splitlines():
+            modules = extract_modules_from_line(line, language)
+            for module in modules:
+                module_paths = MODULE_TO_PATH[language]("", module)
+                for module_path in module_paths:
+                    if module_path in project_file_paths:
+                        print(f"Find: '{module}' in project")
+                        new_file["depend_on"].append(module_path)
+                        break
+        hierarchy_structure.append(new_file)
+    return hierarchy_structure
 
 
 def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
     """
     Insert raw code into the vector store.
     """
+    print("Inserting raw code into vector store...")
+
     for file in repo_files:
         raw_source_code = []
-        chunks = split_source_code(file['content'], LANGUAGE_LANGCHAIN.get(file['language'], Language.PYTHON)) \
-            if file['content'] else []
+        chunks = split_source_code(file['content'], LANGUAGE_LANGCHAIN.get(file['language'], Language.PYTHON)) if file['content'] else []
         for i, chunk in enumerate(chunks):
             embedding = embedding_text(chunk)
             raw_source_code.append({
@@ -170,8 +180,13 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
             data=raw_source_code,
         )
 
+    print("Raw code insertion completed.")
+
 
 def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Dict]) -> List[Dict]:
+    """Insert file descriptions into the vector store."""
+    print("Inserting file descriptions into vector store...")
+
     file_descriptions_all = []
     for file in repo_files:
         file_descriptions = []
@@ -197,27 +212,42 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
             data=file_descriptions,
         )
         file_descriptions_all.extend(file_descriptions)
+
+    print("File descriptions insertion completed.")
+
     return file_descriptions_all
 
 
 def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Dict]):
-    file_requirements = []
-    for file in repo_files:
-        if file['type'] == 'code':
-            import_list = get_import_list(file['content'])
-            file_requirements.append({
-                "path": file['path'],
-                "repo_name": repo_name,
-                "depend_on_raw_path": import_list,
-            })
-    file_requirements = process_raw_hierarchy(file_requirements)
-    milvus_db.insert_data(
-        collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
-        data=file_requirements,  #Xu li them
-    )
+    """Insert file requirements into the vector store."""
+    print("Inserting file requirements into vector store...")
+
+    hierarchy_structure = get_depend_on(repo_files)
+    for hierarchy in hierarchy_structure:
+        file_hierarchies = []
+        split_depend_on = split_text(hierarchy["depend_on"])
+        for i, depend_on in enumerate(split_depend_on):
+            embedding_depend_on = embedding_text(depend_on)
+            file_hierarchies.append({
+                    DEFAULT_TEXT_FIELD: depend_on,
+                    DEFAULT_EMBEDDING_FIELD: embedding_depend_on,
+                    # Metadata
+                    "chunk_index": i,
+                    "repo_name": repo_name,
+                    "path": hierarchy["path"],
+                })
+        milvus_db.insert_data(
+            collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
+            data=file_hierarchies,
+        )
+
+    print("File requirements insertion completed.")
 
 
 def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
+    """Insert idea summaries into the vector store."""
+    print("Inserting idea summaries into vector store...")
+
     file_descriptions_string = FileDescriptions(
         files=[
             FileDescription(
@@ -245,3 +275,5 @@ def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
                 "repo_name": repo_name,
             }],
         )
+
+    print("Idea summaries insertion completed.")

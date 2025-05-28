@@ -10,6 +10,7 @@ from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
 from app.config.llama_index_config import get_llama_index_model, get_llama_index_embedding
 from app.config.app_config import API_PROVIDER, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, IS_LLAMA_INDEX, \
     API_PROVIDER_EMBEDDING
+from app.vector_store.milvus.milvus_db import get_client_instance
 
 
 def prompt_template(context: str, previous_response: str, path: str) -> str:
@@ -139,3 +140,40 @@ def get_metadata(metadata_fields: List[str], datas: List[Dict[str, Any]]) -> Lis
         for field in metadata_fields:
             metadata[i][field] = data.get(field, "")
     return metadata
+
+
+def check_llm_connection() -> bool:
+    """
+    Check if the LLM connection is working.
+    """
+    try:
+        if IS_LLAMA_INDEX:
+            llm = get_llama_index_model(model_name="test_model")
+            response = llm.chat([ChatMessage(role="user", content="Are you there?")])
+            content = response.message.blocks[0].text
+        else:
+            response = ollama_query(
+                system_prompt="Are you there?",
+                prompt="Are you there?",
+                model_name="test_model",
+            )
+            content = response.get('response', 'No response key in response dictionary.')
+        if "Error connecting to Ollama" in content:
+            return False
+        return True
+    except Exception as e:
+        print(f"LLM connection failed: {e}")
+    return False
+
+
+def check_vector_store_connection() -> bool:
+    """
+    Check if the vector store connection is working.
+    """
+    try:
+        get_client_instance()
+        print("Vector store connection successful.")
+        return True
+    except Exception as e:
+        print(f"Vector store connection failed: {e}")
+    return False

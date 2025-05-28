@@ -7,7 +7,7 @@ client = Client(
 )
 
 
-def ollama_query(prompt: str, model_name: str, system_prompt: str, model_json_schema: Dict[str, Any]) -> GenerateResponse:
+def ollama_query(prompt: str, model_name: str, system_prompt: str, model_json_schema: Dict[str, Any] = None) -> GenerateResponse:
     try:
         response = client.generate(
             prompt=prompt,

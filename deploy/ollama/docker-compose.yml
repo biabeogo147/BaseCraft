@@ -1,6 +1,10 @@
 volumes:
   ollama_storage:
 
+networks:
+  ollama_network:
+    driver: bridge
+
 x-ollama: &service-ollama
   image: ollama/ollama:latest
   container_name: ollama
@@ -12,6 +16,14 @@ x-ollama: &service-ollama
   environment:
     - OLLAMA_HOST=0.0.0.0:11434
     - OLLAMA_KEEP_ALIVE=-1
+  networks:
+    - ollama_network
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:11434"]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
 
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
@@ -22,7 +34,9 @@ x-init-ollama: &init-ollama
     - OLLAMA_HOST=ollama:11434
   command:
     - "-c"
-    - "sleep 3; ollama pull llama3.2:1b"
+    - "sleep 3; ollama pull llama3.2:3b && ollama pull mxbai-embed-large"
+  networks:
+    - ollama_network
 
 services:
   ollama-cpu:
@@ -52,17 +66,20 @@ services:
     profiles: ["cpu"]
     <<: *init-ollama
     depends_on:
-      - ollama-cpu
+      ollama-cpu:
+        condition: service_healthy
 
   ollama-pull-llama-gpu:
     profiles: ["gpu-nvidia"]
     <<: *init-ollama
     depends_on:
-      - ollama-gpu
+      ollama-gpu:
+        condition: service_healthy
 
   ollama-pull-llama-gpu-amd:
     profiles: ["gpu-amd"]
     <<: *init-ollama
     image: ollama/ollama:rocm
     depends_on:
-      - ollama-gpu-amd
+      ollama-gpu:
+        condition: service_healthy
