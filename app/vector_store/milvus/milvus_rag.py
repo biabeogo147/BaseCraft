@@ -1,50 +1,59 @@
-import json
-from typing import Dict, Any
 from app.config import app_config
+from typing import Dict, Any, List
 from app.vector_store.milvus import milvus_db
-from app.config.app_config import DEFAULT_METRIC_TYPE, KNOWLEDGE_BASE_DB
 from app.llm.llm_query.base_ollama_query import embedding_ollama
+from app.config.app_config import DEFAULT_METRIC_TYPE, KNOWLEDGE_BASE_DB, DEFAULT_EMBEDDING_FIELD, DEFAULT_TEXT_FIELD
 
 
-def query_milvus_with_prompt(prompt: str, collection_name: str, limit: int = 10) -> str:
+def query_milvus_with_prompt(
+        prompt: str,
+        collection_name: str,
+        output_fields: List[str],
+        limit: int = 10) -> List[Dict[str, Any]]:
+
+    output_fields = [DEFAULT_TEXT_FIELD] + output_fields
     client = milvus_db.get_client_instance()
     client.use_database(KNOWLEDGE_BASE_DB)
 
     search = client.search(
         data=embedding_ollama(text=[prompt], model_name=app_config.MXBAI_EMBED_LARGE_MODEL_NAME),
         search_params={"metric_type": DEFAULT_METRIC_TYPE, "params": {}},
+        anns_field=DEFAULT_EMBEDDING_FIELD,
         collection_name=collection_name,
-        output_fields=["content"],
+        output_fields=output_fields,
         limit=limit,
     )
 
-    # Extracting content, distance and metadata from the search results
     retrieved_lines_with_distances = [
-        (res["entity"]["content"], res["distance"]) for res in search[0] # If length(search) = length(number of questions)
+        {
+            "distance": res["distance"],
+            **{field: res["entity"][field] for field in output_fields}
+        }
+        for res in search[0]  # If length(search) = length(number of questions)
     ]
 
-    return json.dumps(retrieved_lines_with_distances, indent=4)
+    return retrieved_lines_with_distances
 
 
-def query_milvus_with_metadata(metadata: Dict[str, Any], collection_name: str, limit: int = 100) -> str:
+def query_milvus_with_metadata(
+        metadata: Dict[str, Any],
+        collection_name: str,
+        output_fields: List[str],
+        limit: int = 100) -> List[Dict[str, Any]]:
+
+    output_fields = [DEFAULT_TEXT_FIELD] + output_fields
     client = milvus_db.get_client_instance()
     client.use_database(KNOWLEDGE_BASE_DB)
 
     filter_expr = " AND ".join(
         [f"{key} == '{value}'" for key, value in metadata.items()]
     )
-    search = client.search(
-        search_params={"metric_type": DEFAULT_METRIC_TYPE, "params": {}},
-        data=[[0.0 for _ in range(app_config.EMBED_VECTOR_DIM)]],
+    result = client.query(
         collection_name=collection_name,
-        output_fields=["content"],
+        output_fields=output_fields,
         filter_params=metadata,
         filter=filter_expr,
         limit=limit,
     )
 
-    retrieved_lines_with_distances = [
-        (res["entity"]["content"]) for res in search[0] # If length(search) = length(number of questions)
-    ]
-
-    return json.dumps(retrieved_lines_with_distances, indent=4)
+    return result

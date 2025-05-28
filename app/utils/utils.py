@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Dict, Any
 from app.llm.llm_output.idea_schema import Idea
 from app.llm.llm_output.programming_schema import File
 from llama_index.core.prompts import RichPromptTemplate
@@ -128,3 +128,14 @@ def llm_query(prompt: str, model_name: str, count_self_loop: int = 0, context: s
                 count_self_loop = 0
 
     return response
+
+
+def get_metadata(metadata_fields: List[str], datas: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Extract metadata from the data dictionary based on the provided metadata fields.
+    """
+    metadata = [{} for _ in range(len(datas))]
+    for i, data in enumerate(datas):
+        for field in metadata_fields:
+            metadata[i][field] = data.get(field, "")
+    return metadata
