@@ -18,12 +18,6 @@ x-ollama: &service-ollama
     - OLLAMA_KEEP_ALIVE=-1
   networks:
     - ollama_network
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:11434"]
-    interval: 10s
-    timeout: 5s
-    retries: 3
-    start_period: 10s
 
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
@@ -66,20 +60,17 @@ services:
     profiles: ["cpu"]
     <<: *init-ollama
     depends_on:
-      ollama-cpu:
-        condition: service_healthy
+      - ollama-cpu
 
   ollama-pull-llama-gpu:
     profiles: ["gpu-nvidia"]
     <<: *init-ollama
     depends_on:
-      ollama-gpu:
-        condition: service_healthy
+      - ollama-gpu
 
   ollama-pull-llama-gpu-amd:
     profiles: ["gpu-amd"]
     <<: *init-ollama
     image: ollama/ollama:rocm
     depends_on:
-      ollama-gpu:
-        condition: service_healthy
+      - ollama-gpu

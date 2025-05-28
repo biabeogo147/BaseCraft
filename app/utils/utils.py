@@ -9,7 +9,7 @@ from app.llm.llm_output.description_structure_schema import FileDescriptions
 from app.llm.llm_query.base_ollama_query import embedding_ollama, ollama_query
 from app.config.llama_index_config import get_llama_index_model, get_llama_index_embedding
 from app.config.app_config import API_PROVIDER, MXBAI_EMBED_LARGE_MODEL_NAME, EMBED_VECTOR_DIM, IS_LLAMA_INDEX, \
-    API_PROVIDER_EMBEDDING
+    API_PROVIDER_EMBEDDING, MODEL_USING
 from app.vector_store.milvus.milvus_db import get_client_instance
 
 
@@ -155,11 +155,12 @@ def check_llm_connection() -> bool:
             response = ollama_query(
                 system_prompt="Are you there?",
                 prompt="Are you there?",
-                model_name="test_model",
+                model_name=MODEL_USING,
             )
             content = response.get('response', 'No response key in response dictionary.')
         if "Error connecting to Ollama" in content:
             return False
+        print("LLM connection successful:" + content)
         return True
     except Exception as e:
         print(f"LLM connection failed: {e}")

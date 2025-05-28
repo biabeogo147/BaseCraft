@@ -53,11 +53,11 @@ GEMINI_3n_e4b_MODEL_NAME = "gemma-3n-e4b-it"
 GEMINI_1_5_flash_MODEL_NAME = "gemini-1.5-flash"
 GEMINI_1_5_flash_8b_MODEL_NAME = "gemini-1.5-flash-8b"
 GEMINI_2_flash_lite_MODEL_NAME = "gemini-2.0-flash-lite"
-MODEL_USING = GEMINI_2_flash_lite_MODEL_NAME
+MODEL_USING = LLAMA_MODEL_NAME
 
 MXBAI_EMBED_LARGE_MODEL_NAME = "mxbai-embed-large"
 
-OLLAMA_HOST = "http://172.18.0.2:11434"
+OLLAMA_HOST = "http://localhost:11434"
 VLLM_HOST = "http://localhost:11435"
 
 MILVUS_HOST = "http://192.168.0.111:19530"

@@ -1,11 +1,8 @@
 import os
 import re
-
+import json
 from github import Github
 from typing import List, Dict
-
-from pyarrow.ipc import new_file
-
 from app.config import app_config
 from github.Repository import Repository
 from app.vector_store.milvus import milvus_db
@@ -109,9 +106,6 @@ def get_github_connect() -> Github:
 
 def extract_modules_from_line(line, language):
     """Extract module names from a line of code based on the programming language."""
-    if language not in LANGUAGE_PATTERNS:
-        return []
-
     patterns = LANGUAGE_PATTERNS[language]
     modules = []
 
@@ -135,7 +129,7 @@ def get_depend_on(project_files: List[Dict]) -> List[Dict]:
         new_file = {}
         new_file["path"] = os.path.normpath(file["path"])
         language = EXTENSION_TO_LANGUAGE.get(os.path.splitext(new_file["path"])[1].lower())
-        if not language:
+        if not language in LANGUAGE_PATTERNS:
             continue
 
         new_file["depend_on"] = []
@@ -175,10 +169,12 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
                 "repo_name": repo_name,
                 "language": file['language'],
             })
+        print(f"\nInserting raw code for: {file['path']}")
         milvus_db.insert_data(
             collection_name=GITHUB_RAW_CODE_COLLECTION,
             data=raw_source_code,
         )
+        print(f"File: {file['path']} raw code inserted.\n")
 
     print("Raw code insertion completed.")
 
@@ -207,11 +203,13 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
                 "path": file['path'],
                 "repo_name": repo_name,
             })
+        print("Inserting file description for:", file['path'])
         milvus_db.insert_data(
             collection_name=GITHUB_DESCRIPTION_STRUCTURE_COLLECTION,
             data=file_descriptions,
         )
         file_descriptions_all.extend(file_descriptions)
+        print(f"File: {file['path']} descriptions inserted.")
 
     print("File descriptions insertion completed.")
 
@@ -224,22 +222,23 @@ def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Di
 
     hierarchy_structure = get_depend_on(repo_files)
     for hierarchy in hierarchy_structure:
-        file_hierarchies = []
-        split_depend_on = split_text(hierarchy["depend_on"])
-        for i, depend_on in enumerate(split_depend_on):
-            embedding_depend_on = embedding_text(depend_on)
-            file_hierarchies.append({
-                    DEFAULT_TEXT_FIELD: depend_on,
-                    DEFAULT_EMBEDDING_FIELD: embedding_depend_on,
-                    # Metadata
-                    "chunk_index": i,
-                    "repo_name": repo_name,
-                    "path": hierarchy["path"],
-                })
-        milvus_db.insert_data(
-            collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
-            data=file_hierarchies,
-        )
+        if len(hierarchy["depend_on"]):
+            file_hierarchies = []
+            split_depend_on = split_text(str(hierarchy["depend_on"]))
+            for i, depend_on in enumerate(split_depend_on):
+                embedding_depend_on = embedding_text(depend_on)
+                file_hierarchies.append({
+                        DEFAULT_TEXT_FIELD: depend_on,
+                        DEFAULT_EMBEDDING_FIELD: embedding_depend_on,
+                        # Metadata
+                        "chunk_index": i,
+                        "repo_name": repo_name,
+                        "path": hierarchy["path"],
+                    })
+            milvus_db.insert_data(
+                collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
+                data=file_hierarchies,
+            )
 
     print("File requirements insertion completed.")
 
