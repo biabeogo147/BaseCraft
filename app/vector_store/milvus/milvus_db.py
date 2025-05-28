@@ -5,14 +5,23 @@ from app.config.app_config import IS_METADATA, MILVUS_USER, MILVUS_PASSWORD, MIL
     EMBED_VECTOR_DIM, RENEW_DB, KNOWLEDGE_BASE_DB, RENEW_COLLECTIONS, DEFAULT_EMBEDDING_FIELD, \
     DEFAULT_TEXT_FIELD, DEFAULT_METRIC_TYPE, INIT_COLLECTIONS
 
-client = MilvusClient(
-    uri=MILVUS_HOST,
-    token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
-)
+_client = None
 # client = MilvusClient("./milvus_demo.db")
 
 
+def get_client_instance() -> MilvusClient:
+    """Get the Milvus client instance."""
+    global _client
+    if _client is None:
+        _client = MilvusClient(
+            uri=MILVUS_HOST,
+            token=f"{MILVUS_USER}:{MILVUS_PASSWORD}",
+        )
+    return _client
+
+
 def setup_vector_store():
+    """Set up the vector store by initializing the database and collections."""
     if RENEW_DB:
         drop_db(KNOWLEDGE_BASE_DB)
     init_db(KNOWLEDGE_BASE_DB)
@@ -20,6 +29,7 @@ def setup_vector_store():
 
 def init_db(db_name: str):
     """Initialize the database and index with LlamaIndex."""
+    client = get_client_instance()
     try:
         databases = client.list_databases()
         if db_name not in databases:
@@ -40,6 +50,7 @@ def init_db(db_name: str):
 
 def drop_db(db_name: str):
     """Drop the database and all its collections."""
+    client = get_client_instance()
     try:
         if db_name not in client.list_databases():
             print(f"Database {db_name} does not exist.")
@@ -63,6 +74,7 @@ def create_db(db_name: str):
     database.max.collections (integer): The maximum number of collections allowed in the specified database.
     database.force.deny.writing (boolean): Whether to force the specified database to deny writing operations.
     database.force.deny.reading (boolean): Whether to force the specified database to deny reading operations."""
+    client = get_client_instance()
     client.create_database(
         db_name=db_name,
         properties=None,
@@ -106,6 +118,7 @@ def create_schema() -> CollectionSchema:
 
 
 def create_index_params() -> IndexParams:
+    client = get_client_instance()
     index_params = client.prepare_index_params()
     index_params.add_index(
         field_name="id",
@@ -122,6 +135,7 @@ def create_index_params() -> IndexParams:
 
 def create_collection(collection_name: str):
     schema = create_schema()
+    client = get_client_instance()
     index_params = create_index_params()
     client.create_collection(
         collection_name=collection_name,
@@ -132,6 +146,7 @@ def create_collection(collection_name: str):
 
 
 def drop_collection(collection_name: str):
+    client = get_client_instance()
     try:
         if collection_name not in client.list_collections():
             print(f"Collection {collection_name} does not exist.")
@@ -144,6 +159,7 @@ def drop_collection(collection_name: str):
 
 
 def insert_data(collection_name: str, data: List[dict]):
+    client = get_client_instance()
     try:
         client.insert(collection_name=collection_name, data=data)
         print(f"Inserted {len(data)} data into collection {collection_name}.")
