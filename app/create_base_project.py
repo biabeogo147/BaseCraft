@@ -1,5 +1,6 @@
 import os
 import shutil
+from app.utils.utils import check_llm_connection, check_vector_store_connection
 from app.utils.generation_workflow import generate_scripts, generate_directories_and_files
 
 
@@ -21,6 +22,14 @@ def create_project(requirement: str, root_dir: str):
 
 
 def main():
+    is_llm_connect = check_llm_connection()
+    # is_cache_connect = check_cache_connection()
+    is_vector_store_connect = check_vector_store_connection()
+
+    if not is_llm_connect or not is_vector_store_connect:
+        print("Failed to connect to LLM or Vector Store. Please check your configuration.")
+        exit(0)
+
     # requirement = input("Enter the project requirement: ")
     requirement = "Generate a simple Flappy bird game using python."
     # root_dir = input("Enter the project name: ")

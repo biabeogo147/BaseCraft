@@ -150,7 +150,7 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
     """
     Insert raw code into the vector store.
     """
-    print("Inserting raw code into vector store...")
+    print("\nInserting raw code into vector store...")
 
     for file in repo_files:
         raw_source_code = []
@@ -179,7 +179,7 @@ def insert_raw_code_to_vector_store(repo_name: str, repo_files: List[Dict]):
 
 def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Dict]) -> List[Dict]:
     """Insert file descriptions into the vector store."""
-    print("Inserting file descriptions into vector store...")
+    print("\nInserting file descriptions into vector store...")
 
     file_descriptions_all = []
     for file in repo_files:
@@ -201,13 +201,13 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
                 "path": file['path'],
                 "repo_name": repo_name,
             })
-        print("Inserting file description for:", file['path'])
+        print("\nInserting file description for:", file['path'])
         milvus_db.insert_data(
             collection_name=GITHUB_DESCRIPTION_STRUCTURE_COLLECTION,
             data=file_descriptions,
         )
         file_descriptions_all.extend(file_descriptions)
-        print(f"File: {file['path']} descriptions inserted.")
+        print(f"File: {file['path']} descriptions inserted.\n")
 
     print("File descriptions insertion completed.")
 
@@ -216,7 +216,7 @@ def insert_file_descriptions_to_vector_store(repo_name: str, repo_files: List[Di
 
 def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Dict]):
     """Insert file requirements into the vector store."""
-    print("Inserting file requirements into vector store...")
+    print("\nInserting file requirements into vector store...")
 
     hierarchy_structure = get_depend_on(repo_files)
     for hierarchy in hierarchy_structure:
@@ -243,7 +243,7 @@ def insert_file_requirements_to_vector_store(repo_name: str, repo_files: List[Di
 
 def insert_idea_to_vector_store(repo_name: str, file_descriptions: List[Dict]):
     """Insert idea summaries into the vector store."""
-    print("Inserting idea summaries into vector store...")
+    print("\nInserting idea summaries into vector store...")
 
     file_descriptions_string = FileDescriptions(
         files=[

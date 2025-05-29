@@ -72,14 +72,13 @@ REDIS_PASSWORD = "PASSWORD"
 
 GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 REPO_NAMES = [
-    "sourabhv/FlapPyBird",
-    "clear-code-projects/FlappyBird_Python",
+    # "sourabhv/FlapPyBird",
+    # "clear-code-projects/FlappyBird_Python",
     "LeonMarqs/Flappy-bird-python",
     "undercase/FlappyKivy",
     "techwithtim/Flappy-Bird",
-    "filhoweuler/python-flappybird",
-    "tjwei/Flappy-Turtle",
-
+    # "filhoweuler/python-flappybird",
+    # "tjwei/Flappy-Turtle",
 ]
 FILE_TYPE_MAPPING = {
     '.py': 'code', '.txt': 'code', '.md': 'code', '.json': 'code',
