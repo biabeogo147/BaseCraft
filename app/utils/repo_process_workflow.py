@@ -1,12 +1,11 @@
 import os
 import re
-import json
 from github import Github
 from typing import List, Dict
 from app.config import app_config
 from github.Repository import Repository
 from app.vector_store.milvus import milvus_db
-from app.utils.utils import is_file, embedding_text, llm_query
+from app.utils.utils import embedding_text, llm_query
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from app.llm.llm_output.description_structure_schema import FileDescription, FileDescriptions
 from app.config.app_config import LANGUAGE_LANGCHAIN, DEFAULT_TEXT_FIELD, DEFAULT_EMBEDDING_FIELD, \
@@ -94,7 +93,7 @@ def get_github_connect() -> Github:
     Connect to GitHub using the provided API key.
 
     Returns:
-        Github: A Github instance.
+        GitHub: A GitHub instance.
     """
     global _github
     if _github is None:
@@ -126,8 +125,7 @@ def get_depend_on(project_files: List[Dict]) -> List[Dict]:
 
     hierarchy_structure = []
     for file in project_files:
-        new_file = {}
-        new_file["path"] = os.path.normpath(file["path"])
+        new_file = {"path": os.path.normpath(file["path"])}
         language = EXTENSION_TO_LANGUAGE.get(os.path.splitext(new_file["path"])[1].lower())
         if not language in LANGUAGE_PATTERNS:
             continue
