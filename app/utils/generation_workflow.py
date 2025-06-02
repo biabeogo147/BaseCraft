@@ -133,7 +133,7 @@ def get_hierarchy_context(idea_metadata: Dict[str, Any]) -> str:
         collection_name=GITHUB_HIERARCHY_STRUCTURE_COLLECTION,
         output_fields=METADATA_HIERARCHY_STRUCTURE_COLLECTION,
     )
-    hierarchy_context = sorted(hierarchy_context, key=lambda x: x["chunk_id"])
+    hierarchy_context = sorted(hierarchy_context, key=lambda x: x["chunk_index"])
     hierarchy_context = " ".join([item[DEFAULT_TEXT_FIELD] for item in hierarchy_context])
     return hierarchy_context
 
@@ -145,7 +145,7 @@ def get_description_context(idea_metadata: Dict[str, Any]) -> str:
         collection_name=GITHUB_DESCRIPTION_STRUCTURE_COLLECTION,
         output_fields=METADATA_DESCRIPTION_STRUCTURE_COLLECTION,
     )
-    description_context = sorted(description_context, key=lambda x: x["chunk_id"])
+    description_context = sorted(description_context, key=lambda x: x["chunk_index"])
     description_context = " ".join([item[DEFAULT_TEXT_FIELD] for item in description_context])
     return description_context
 
@@ -167,7 +167,7 @@ def get_idea_context(prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
         collection_name=GITHUB_IDEA_COLLECTION,
         output_fields=METADATA_IDEA_COLLECTION,
     )
-    idea_context = sorted(idea_context, key=lambda x: x["chunk_id"])
+    idea_context = sorted(idea_context, key=lambda x: x["chunk_index"])
     idea_context = " ".join([item[DEFAULT_TEXT_FIELD] for item in idea_context])
     return idea_context, idea_metadata
 
@@ -188,7 +188,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating description structure...")
     description_context = get_description_context(idea_metadata[0])
     description_structure_result = llm_query(
-        count_self_loop=1,
+        count_self_loop=2,
         prompt=idea_result,
         context=description_context,
         model_name=app_config.MODEL_USING,
@@ -201,7 +201,7 @@ def generate_scripts(prompt: str, root_json_files: str):
     print(f"Generating hierarchy structure...")
     hierarchy_context = get_hierarchy_context(idea_metadata[0])
     hierarchy_structure_result = llm_query(
-        count_self_loop=1,
+        count_self_loop=2,
         context=hierarchy_context,
         model_role="hierarchy_structure",
         model_name=app_config.MODEL_USING,
@@ -233,7 +233,7 @@ def generate_scripts(prompt: str, root_json_files: str):
                 prompt=file.model_dump_json(exclude_none=True),
                 model_name=app_config.MODEL_USING,
                 model_role="programming",
-                count_self_loop=1,
+                count_self_loop=5,
             )
             save(programming_result, f"{root_programming_json}\\{os.path.basename(file.path)}.json")
             fixing_result = llm_query(
@@ -241,7 +241,7 @@ def generate_scripts(prompt: str, root_json_files: str):
                 model_role="compile_error_fix",
                 prompt=programming_result,
                 context=file.description,
-                count_self_loop=1,
+                count_self_loop=3,
             )
             save(fixing_result, f"{root_fix_code_json}\\{os.path.basename(file.path)}_fixing.json")
             cnt += 1

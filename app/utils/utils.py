@@ -160,7 +160,7 @@ def check_llm_connection() -> bool:
             content = response.get('response', 'No response key in response dictionary.')
         if "Error connecting to Ollama" in content:
             return False
-        print("LLM connection successful:" + content)
+        print("LLM connection successful.")
         return True
     except Exception as e:
         print(f"LLM connection failed: {e}")
