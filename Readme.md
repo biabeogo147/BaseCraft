@@ -3,7 +3,7 @@
 > **Automate software project creation with the power of Large Language Models and Vector Databases**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
-[![LLM](https://img.shields.io/badge/LLM-Ollama%20%7C%20Gemini-green.svg)](https://ollama.ai)
+[![Model Serving](https://img.shields.io/badge/LLM-Ollama%20%7C%20vLLM-green.svg)]()
 [![Vector DB](https://img.shields.io/badge/Vector%20DB-Milvus-orange.svg)](https://milvus.io)
 [![Cache](https://img.shields.io/badge/Cache-Redis-red.svg)](https://redis.io)
 
